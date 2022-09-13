@@ -1,5 +1,5 @@
 # 683GIS
-## Auther: Shae Chang
+### Auther: Shae Chang
 
 
 These are materials of PPOL 683 GIS course
