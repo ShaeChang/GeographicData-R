@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document id="root_doc">
+<Schema name="sites" id="sites">
+	<SimpleField name="site" type="string"></SimpleField>
+</Schema>
+<Folder><name>sites</name>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">apple</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-76.9541990076624,39.0064682611147</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">apricot</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-76.4631086824912,39.113122209328</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">avocado</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-76.7946731097776,38.974053618914</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">banana</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.0045115539156,38.975700455311</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">bell pepper</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-76.5480222494896,39.1266584026691</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">bilberry</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.0533363721153,38.9000573371157</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">blackberry</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-76.4850169465092,38.9625652431145</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">blackcurrant</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.264378567856,38.7415669519317</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">blood orange</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.4181144800985,38.8651568521348</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">blueberry</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-76.9287883268322,39.0623673050514</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">boysenberry</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.0225525837239,39.0141959067996</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">breadfruit</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.0475359868677,38.9197025156491</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">canary melon</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-76.8442151599822,39.1565321514856</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">cantaloupe</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.1096766185884,38.947608369891</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">cherimoya</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.0176992560151,38.9889073104869</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">cherry</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.1318150347701,38.9128232508679</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">chili pepper</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.1225716009195,38.8847537966433</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">clementine</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.2043849507613,39.084150839967</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">cloudberry</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.0470599057996,38.9228013855518</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">coconut</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.3079232199463,39.0903092861997</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">cranberry</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.2409740980646,38.8821441310748</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">cucumber</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.0569116510095,38.934828003419</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">currant</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.0575403477092,38.9725246018463</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">damson</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.0787779794571,38.7929788624742</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">date</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-76.5350809983348,38.7039618017232</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">dragonfruit</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.2989499001777,39.0361218098143</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">durian</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-76.46771668999,39.0927183697406</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">eggplant</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.3272162411491,38.8893852637741</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">elderberry</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.0425825905497,38.9255468779107</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">feijoa</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.1034207503836,38.7852933604881</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">fig</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-76.5480020347082,39.0104043301862</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">goji berry</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-76.4700864231309,39.0174585594387</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">gooseberry</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.0823761439404,38.9574333758481</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">grape</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.0205170238247,38.9942105859503</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">grapefruit</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-76.5534926215145,38.8599418467417</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">guava</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-76.9210627714955,38.9272682853083</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">honeydew</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-76.8180577266688,39.3349910870118</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">huckleberry</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-76.9916708940604,38.986237126623</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">jackfruit</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.0684569247117,38.9771970222736</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">jambul</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-76.9858815872099,39.0830059795057</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">jujube</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.1659731557755,38.9177084431297</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">kiwi fruit</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-76.8734802465547,39.0030714340265</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">kumquat</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-76.5658336701947,38.9653292292578</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">lemon</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-76.5975293813626,38.7227781827962</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">lime</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.1313422998469,39.0098526330768</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">loquat</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-76.9176544071728,38.930063504868</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">lychee</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.0750031602788,38.9827751648912</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">mandarine</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.118616,38.999316</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">mango</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-76.996958,38.883588</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">mulberry</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-76.924433,39.013183</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">nectarine</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.0839,38.949</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">nut</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.043167,38.918567</coordinates></Point>
+  </Placemark>
+  <Placemark>
+	<ExtendedData><SchemaData schemaUrl="#sites">
+		<SimpleData name="site">olive</SimpleData>
+	</SchemaData></ExtendedData>
+      <Point><coordinates>-77.0618,38.941583</coordinates></Point>
+  </Placemark>
+</Folder>
+</Document></kml>
