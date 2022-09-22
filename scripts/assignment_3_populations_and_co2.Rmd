@@ -1,0 +1,539 @@
+---
+title: "Assignment 3: Global CO~2~ Emissions"
+author: "Your name here"
+date: "today's date here"
+output: html_document
+---
+
+<!-- Please knit this right away! The additional information for (html and css)
+are provided to help you build on your current R Markdown toolbox. You will not
+be responsible for learning these additional tools at this point. -->
+
+<!-- The head tag, <head>, is a container for metadata in an html document. 
+We can use it to define styles and do lots of other cool things things. -->
+<head>
+<!-- The link tag, <link>, creates a relationship between this file and
+an external source. Here, I'm linking font-awesome so I can include a 
+couple of icons that I like (user-secret and user-circle) -->
+<link 
+  rel="stylesheet" 
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<!-- Here I'm linking to a javascript file that will give us access to font awesome -->
+  <script src="https://kit.fontawesome.com/03064bdd6c.js" crossorigin="anonymous"></script>
+</head>
+<!-- Note in the above that some html tags, like <head> need to be closed 
+with </head>. Others, like <link> don't need a closing tag. -->
+
+```{css, echo = FALSE}
+/* We can use the body tag to change the default text size of the whole document. */
+  
+body {
+  font-size: 18px
+}
+
+/* We can increase the space between our list items */
+  
+ul, li {
+  padding-top: 0.25em;
+}
+
+pre {
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+
+/* I can add custom classes with a period symbol. */
+
+.score {
+  font-weight: bold;
+  color: red;
+  background-color: #ffff80;
+}
+
+/* I create an custom class for user secrets. Have a look at the area surrounding my spy icons below to see what this does. Also, do you notice any similarity to your ggPlot theme elements? */
+  
+.mysecret {
+  border: 1px solid #999999;
+  border-style: solid; 
+  padding: 20px; 
+  border-radius: 25px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+/* Here, I add a custom class for area surrounding the graded portions of this assignment.*/
+
+.now_you {
+  border-left: 8px solid #292093;
+  background-color: #e6ffff;
+  padding: 16px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+/* Here I will add some custom css on my font awesome icons*/
+  
+.fas {
+  font-size:36px
+}
+  
+.subscore {
+  font-size: 14px;
+  color: red;
+}
+
+/* I can modify a current class like the below. To see what this does,
+have a look at where I am using block quotes in the document.*/
+  
+blockquote {
+  font-size: 18px;
+  border-left: 8px solid #292093;
+  background-color: #e6ffff;
+  padding-left: 16px;
+  padding-right: 16px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+/* Accordian style */
+.accordion {
+  background-color: #e6f0ff;
+  color: #000000;
+  cursor: pointer;
+  padding: 18px;
+  width: 100%;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #ffffff;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+  transition: 0.4s;
+}
+
+.active, .accordion:hover {
+  background-color: #80b3ff; 
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.panel {
+  padding: 0 18px;
+  display: none;
+  background-color: #eeffff;
+  overflow: hidden;
+}
+```
+
+<!-- Here is the setup for knitr. I had to include tidyverse so I could
+include a tidyverse example with my Important warning statement below-->
+
+```{r knitr_setup, include = FALSE}
+options(knitr.table.format = "html")
+
+knitr::opts_chunk$set(error = TRUE)
+
+library(tidyverse)
+```
+
+<hr>
+
+## Overview
+
+In this exercise, you will explore data compiled by the <a href = "https://databank.worldbank.org/home.aspx" target = "_blank">World Bank DataBank</a> that provides information on the emissions of greenhouse gases and the populations of countries around the world. 
+
+**Please note: For R Markdown to work properly this file must be placed in the top level of your R Studio project folder!**
+
+Please start by knitting this file. You can use the html file that is generated as a handy reference (it's much easier to read than the markdown file).
+
+You will be working in two files as you complete this assignment, your own new script file, and this R markdown file I'm providing, which you'll be editing and adding to. You will submit this R Markdown file (modified as described below) and your R script file.
+
+<!-- A div is a container for html. I assign it to the class "my secret that
+we created above -->
+<div class = "mysecret">
+<!-- The i tag is commonly used to create italic text, but it can also be 
+used to create icons -->
+<i class="fas fa-user-secret"></i> When I create an R Markdown file to communicate a coding process, I usually work in a .R script file and copy-and-paste the code into the R Markdown document at the end.
+</div>
+
+<hr>
+
+## Grading
+
+The points allotted for each question are provided in highlighted red bold text (e.g., <span class = "score">[1.0]</span>) within the question itself. When applicable, total points for a question may represent the sum of individually graded components, which are provided in red text (e.g., <span class = "subscore">[1.0]</span>).
+
+**Points may be deducted from each question's total:** 
+
+* Use only functions other than those listed in "Functions that you may use in this assignment" [50%]
+* Do not include any assignments other than those specified in the question [50%]
+* Unless specified otherwise, each question must be answered in a single piped statement [50%]
+* Include a comment at the start of each code block [25%]
+* Include a comment for each line of code that modifies a dataset [10% per violation]
+* Ensure that all code is properly indented [10% per violation]
+* Ensure that your code follows modern coding conventions (see *Best practices in modern R coding*) [10% per violation]
+
+*Note: The maximum deduction is the total points value for a given question*
+
+You must ensure that your R Markdown document **runs out-of-the-box** -- in other words, the document will knit without error. Some tips for doing so:
+
+* Do not maintain your project folder in a location that is backed up by an online directory (e.g., Dropbox, iCloud)
+* Ensure that all file paths are equivalent to those in this document (e.g., in `source()` or `read_csv()`)
+* Do not use `setwd()` in your code (***Never** use `setwd()`!*)
+* If one of your code chunks contains an error, include `eval = FALSE` in the options for that chunk
+* Prior to submission, clear all objects from your global environment prior to knitting your R Markdown document
+
+<span style = "color: red; font-size: 36px"><i class="fas fa-exclamation-triangle"></i> **Important**</span> 
+
+To receive full credit for a given question, please ensure that the result you provide **only** answers the given question. For example, in the table below, if you were asked to determine the value in column `b` where column `a` is equal to "hello" you would provide the following code:
+
+```{r example}
+tibble(
+  a = c('hello', 'world'),
+  b = 1:2) %>% 
+  filter(a == 'hello') %>% 
+  pull(b)
+```
+
+<hr>
+
+
+<div>
+<button class="accordion">Functions that you may use in this assignment</button>
+<div class="panel">
+
+In this assignment, you may use **only** the following R functions (*Note: If you are unclear on what a given function does, use `?` to view the help file!*):
+
+* base::<-
+* base::=
+* base::!
+* base::(
+* base::)
+* base::%in%
+* base::c
+* base::library
+* dplyr::full_join
+* dplyr::inner_join
+* dplyr::mutate
+* dplyr::pivot_longer
+* dplyr::rename
+* dplyr::select
+* dplyr::transmute
+* ggplot2::aes
+* ggplot2::facet_wrap
+* ggplot2::geom_point
+* ggplot2::geom_line
+* ggplot2::ggplot
+* ggplot2::theme
+* magrittr::%>%
+* readr::read_csv
+
+*Note: The packages dplyr, ggplot2, magrittr, readr, rlang, and tibble are all part of the tidyverse and are loaded with `library(tidyverse)`.*
+
+</div>
+</div>
+
+<hr>
+
+## Getting started
+
+As always, please ensure that you are starting with a clean session.
+
+Open R Studio. Remember that it's best practice to start with a clean R Studio session. Please do the following before continuing:
+
+1. If there are any script files open in your source pane. Close them. If any of the file titles are blue, save them prior to closing.
+
+1. In the *Environment* tab of your **workspace pane**, ensure that your **global environment** is empty. If it is not, click the *broom* to remove all objects.
+
+1. In the *History* tab of your **workspace pane**, ensure that your history is empty. If it is not, click the *broom* to remove your history.
+
+<div class = "now_you">
+<i class="fas fa-user-circle"></i> 
+<hr>
+1\. <span class = "score">[0.5]</span> Save this document with the name: `data_sci/output/assignment_3_Evans_Brian.Rmd` (replacing my name with yours).
+</div>
+
+### Create a script file:
+
+1. Open a new script file.
+
+1. Save the file right away.
+
+1. Add a new code section and call it "setup"
+<br>
+
+<div class = "now_you">
+<i class="fas fa-user-circle"></i> 
+<hr>
+2\. <span class = "score">[0.25]</span> After a space between your section break and the code, include and run the following:
+
+```{r q2, eval = TRUE, results = 'hide', message = FALSE}
+# Load libraries:
+
+library(tidyverse)
+```
+</div>
+<hr>
+
+## Read in the data
+
+I've provided three data sets:
+
+* Country-level information: `world_bank_countries.csv` *Note: I have cleaned this dataset for you* 
+* Population data, by country, from 1960 through 2020: `API_SP.POP.TOTL_DS2_en_csv_v2_2763937.csv`
+* CO~2~ emission data, by country, from 1960 through 2020: `API_EN.ATM.CO2E.PC_DS2_en_csv_v2_2764620.csv`
+
+*Note: The data set `world_bank_countries.csv` has been cleaned for you. The population and CO~2~ data sets are in their raw form (including the names).*
+
+In your script file, create a new code section for reading in the data.
+
+<div class = "now_you">
+<i class="fas fa-user-circle"></i> 
+<hr>
+3\. <span class = "score">[0.5]</span>  Read in the Country-level information and store it in your global environment by assigning the name `countries`. The files should be located in the folder `data/processed`. Be sure to include a comment that describes which file you are reading in.
+
+```{r q3}
+
+# Paste your code here!
+
+```
+</div>
+
+Reading and processing the raw data will be somewhat more challenging.
+
+Run the script below to read in the population data and assign the name `world_pop` to the object (*Note: You must also execute this code block in your script file!*):
+
+```{r read_world_pop, message = FALSE, warning = FALSE}
+# Read in population data:
+
+world_pop <-
+  read_csv(
+    'data/raw/API_SP.POP.TOTL_DS2_en_csv_v2_2763937.csv', 
+    skip = 3)
+```
+
+I usually do initial data cleaning as I read in a file. I'm going to demonstrate my reading and cleaning operation using the population data.
+
+Let's look at the data first (do so in your Console pane):
+
+```{r world_pop_print}
+world_pop
+```
+
+We can see that the data are super wide. These data are certainly breaking the rule that each observation forms a row. I can fix that with `pivot_longer()`:
+
+```{r world_pop_pivot, message = FALSE, warning = FALSE}
+# Read in population data:
+
+world_pop <-
+  read_csv(
+    'data/raw/API_SP.POP.TOTL_DS2_en_csv_v2_2763937.csv', 
+    skip = 3) %>% 
+  
+  # Reshape year columnns into rows:
+  
+  pivot_longer(
+    names_to = 'year',
+    values_to = 'population',
+    `1960`:`2020`)
+```
+
+Have a look at the data (do so in your Console pane):
+
+```{r world_pop_pivot_print}
+world_pop
+```
+
+Column names that have spaces are a bear to work with. I'm going to change the name of the ``Country Code`` column using `rename()`:
+
+```{r world_pop_rename, message = FALSE, warning = FALSE}
+# Read in population data:
+
+world_pop <-
+  read_csv(
+    'data/raw/API_SP.POP.TOTL_DS2_en_csv_v2_2763937.csv', 
+    skip = 3) %>% 
+  
+  # Reshape year columnns into rows:
+  
+  pivot_longer(
+    names_to = 'year',
+    values_to = 'population',
+    `1960`:`2020`) %>% 
+  
+  # Rename columns with a space:
+  
+  rename(country_code = `Country Code`)
+```
+
+*Note: Why did I include "skip = 3" as one of my arguments? You might want to look at what happens when you don't include a skip argument. If this is confusing, please revisit our lecture or exercise on reading and writing data.*
+
+Have a look at the data again (do so in your Console pane):
+
+```{r world_pop_rename_print}
+world_pop
+```
+
+And finally, I'm going to grab my columns of interest, which here are `country_code`, `year`, and `population`:
+
+```{r world_pop_select, message = FALSE, warning = FALSE}
+# Read in population data:
+
+world_pop <-
+  read_csv(
+    'data/raw/API_SP.POP.TOTL_DS2_en_csv_v2_2763937.csv', 
+    skip = 3) %>% 
+  
+  # Reshape year columnns into rows:
+  
+  pivot_longer(
+    names_to = 'year',
+    values_to = 'population',
+    `1960`:`2020`) %>% 
+  
+  # Rename columns with a space:
+  
+  rename(country_code = `Country Code`) %>% 
+  
+  # Select columns of interest:
+  
+  select(country_code, year, population)
+```
+
+Have a look at the data again:
+
+```{r world_pop_select_print}
+world_pop
+```
+
+In your script file, replace the code section that read in and assigned `world_pop` with the code section above that: 1) read in the file, 2) pivoted the data, 3) renamed the country column, and 4) selected the columns of interest.
+
+<div class = "now_you">
+<i class="fas fa-user-circle"></i> 
+<hr>
+4\. <span class = "score">[1.0]</span> Read in the CO~2~ data <span class = "subscore">[0.25]</span> and store it in your global environment by assigning the name `co2` <span class = "subscore">[0.25]</span>. In doing so, modify the code section that read in the CO~2~ data such that the resultant tibble contains (only) the column names `country_code`, `year`, and `co2` (as above) <span class = "subscore">[0.5]</span>.
+
+```{r q4}
+
+# Paste your code here!
+
+```
+</div>
+<hr>
+
+## Normalize and clean the data
+
+In your script file, create a new code section and call it "normalize and clean data".
+
+We can see that the data are not tidy. Recall the tidy rule that every level of observation forms a table. The population table and the CO~2~ table are the same level of observation -- each characterize some attribute of the country on a given year. As such, the data should be stored in the same table.  We'll need to join the tables together.
+
+Type `?join` in your console. Which join should you use? *Note: you'll have to be careful here, because the two tibbles contain two common columns that define the observation! This is what is known as a **compound key**.*
+
+<div class = "now_you">
+<i class="fas fa-user-circle"></i> 
+<hr>
+5\. <span class = "score">[1.25]</span> Add a comment that *briefly* states which aspect of the data you are normalizing <span class = "subscore">[0.5]</span> and join the population and CO~2~ tibbles <span class = "subscore">[0.5]</span>. Assign the name, `population_co2` to the resultant object<span class = "subscore">[0.25]</span>. 
+
+```{r q5}
+
+# Paste your code here!
+
+```
+
+If you type `str(world_pop)` in our console pane, we can see that year is stored as a character vector. It should be numeric. 
+
+6\. <span class = "score">[0.5]</span> Modify your above code section to change the year column to numeric. 
+
+```{r q6}
+
+# Paste your code here!
+
+```
+</div>
+<hr>
+
+## Subset and plot the data
+
+<span class = "score">[0.5]</span> In your script file, create a new code section and call it "plot population density and co2 emissions in Africa".
+
+Our next goal is to explore the change in population density in African countries, over time. For this, we will need the size of each country of interest -- that is stored in the `countries` data object. 
+
+<div class = "now_you">
+<i class="fas fa-user-circle"></i> 
+<hr>
+7\. <span class = "score">[1.5]</span> Subset `population_co2` such that:
+
+* <span class = "subscore">[1.0]</span>It only includes countries that are in Africa;
+* <span class = "subscore">[0.5]</span>The resultant object includes only the variables `country_name`, `land_area`, `population`, and `co2`. 
+
+```{r q7}
+
+# Paste your code here!
+
+```
+
+Now we want to calculate population density, which is the population per unit area (`population/land_area`), and subset the data to our columns of interest. 
+
+8\. <span class = "score">[1.5]</span>  Modify the code section above:
+
+* <span class = "subscore">[0.5]</span> Calculate the population density of each country and assign the vector to your data frame with the name `population_density`;
+* <span class = "subscore">[0.75]</span> Subset the data to the columns  `country_name`, `population_density`, `co2` and `year` (as parsimoniously as possible);
+* <span class = "subscore">[0.25]</span> Assign the object to your global environment as `africa_population_co2`.
+
+```{r q8}
+
+# Paste your code here!
+
+```
+
+
+9\. <span class = "score">[1.0]</span> Use ggPlot to visualize the change in population in Africa over time: 
+
+* <span class = "subscore">[0.5]</span> Map `year` to your x-axis, `population_density` to your y-axis, and `country_name` to color;
+* <span class = "subscore">[0.5]</span> Add point **and** line geometries to the plot and include at least one modification to the default theme.
+
+```{r q9}
+# Paste your code here!
+
+```
+
+10\. <span class = "score">[2.0]</span> Let's now make a faceted plot. One facet will be population density and the other facet will be CO~2~ emissions. To do so, we'll need to put both of our measurements in the same column. 
+
+* <span class = "subscore">[1.0]</span> Add a line of code that reshapes the data such that: 
+    + The column names `population_density` and `co2` are stored in a single column called `variable`
+    + The values for `population_density` and `co2` are stored in a single column called `value`.
+* <span class = "subscore">[1.0]</span> Use `facet_wrap` to create a 2-facet plot, where one facet represents `population_density` and the other facet `co2`. 
+
+<hr>
+
+```{r q10}
+
+# Paste your code here!
+
+```
+</div>
+
+## Submission
+
+Please save your R markdown (.Rmd) and script (.R) files.
+
+**Only submit the rmd** file!
+
+<hr>
+
+<script>
+var acc = document.getElementsByClassName("accordion");
+var i;
+
+for (i = 0; i < acc.length; i++) {
+  acc[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var panel = this.nextElementSibling;
+    if (panel.style.display === "block") {
+      panel.style.display = "none";
+    } else {
+      panel.style.display = "block";
+    }
+  });
+}
+</script>
+
