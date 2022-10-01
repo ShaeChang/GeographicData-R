@@ -1,0 +1,444 @@
+---
+title: "Assignment 4: Cicada emergence"
+author: "Xiyu Zhang"
+date: "2022-10-01"
+output: html_document
+---
+
+<!-- Please knit this right away! The additional information for (html and css)
+are provided to help you build on your current R Markdown toolbox. You will not
+be responsible for learning these additional tools at this point. -->
+
+<!-- The head tag, <head>, is a container for metadata in an html document. 
+We can use it to define styles and do lots of other cool things things. -->
+<head>
+<!-- The link tag, <link>, creates a relationship between this file and
+an external source. Here, I'm linking font-awesome so I can include a 
+couple of icons that I like (user-secret and user-circle) -->
+<link 
+  rel="stylesheet" 
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<!-- Here I'm linking to a javascript file that will give us access to font awesome -->
+  <script src="https://kit.fontawesome.com/03064bdd6c.js" crossorigin="anonymous"></script>
+</head>
+<!-- Note in the above that some html tags, like <head> need to be closed 
+with </head>. Others, like <link> don't need a closing tag. -->
+
+```{css, echo = FALSE}
+/* We can use the body tag to change the default text size of the whole document. */
+  
+body {
+  font-size: 18px
+}
+
+/* We can increase the space between our list items */
+  
+ul, li {
+  padding-top: 0.25em;
+}
+
+pre {
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+
+/* I can add custom classes with a period symbol. */
+
+.score {
+  font-weight: bold;
+  color: red;
+  background-color: #ffff80;
+}
+
+/* I create an custom class for user secrets. Have a look at the area surrounding my spy icons below to see what this does. Also, do you notice any similarity to your ggPlot theme elements? */
+  
+.mysecret {
+  border: 1px solid #999999;
+  border-style: solid; 
+  padding: 20px; 
+  border-radius: 25px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+/* Here, I add a custom class for area surrounding the graded portions of this assignment.*/
+
+.now_you {
+  border-left: 8px solid #292093;
+  background-color: #e6ffff;
+  padding: 16px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+/* Here I will add some custom css on my font awesome icons*/
+  
+.fas {
+  font-size:36px
+}
+  
+.subscore {
+  font-size: 14px;
+  color: red;
+}
+
+/* I can modify a current class like the below. To see what this does,
+have a look at where I am using block quotes in the document.*/
+  
+blockquote {
+  font-size: 18px;
+  border-left: 8px solid #292093;
+  background-color: #e6ffff;
+  padding-left: 16px;
+  padding-right: 16px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+/* Accordion style */
+.accordion {
+  background-color: #e6f0ff;
+  color: #000000;
+  cursor: pointer;
+  padding: 18px;
+  width: 100%;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #ffffff;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+  transition: 0.4s;
+}
+
+.active, .accordion:hover {
+  background-color: #80b3ff; 
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.panel {
+  padding: 0 18px;
+  display: none;
+  background-color: #eeffff;
+  overflow: hidden;
+}
+```
+
+<!-- Here is the setup for knitr. I had to include tidyverse so I could
+include a tidyverse example with my Important warning statement below-->
+
+```{r knitr_setup, include = FALSE}
+options(knitr.table.format = "html")
+
+knitr::opts_chunk$set(error = TRUE)
+
+library(tidyverse)
+```
+
+<hr>
+
+## Overview
+
+<a title = "Emergence">
+  <img  src = "https://lh3.googleusercontent.com/1dfPLMi9HIkLg746ltRkcuGVwcCocA33wDJYovxvZbsIUNOzSzQyASJ7869x-w8H6R989ym_onoKfEoUfB9WQXsXziWvDAm67RLpqeyFOVaTT6lUTVhkoDtCO-gTQjrmDYZ29sO1zgo=w2400?source=screenshot.guru"
+        alt="Cicada on flower just after emergence"
+        style = "float: right; padding-left: 2em; padding-bottom: 1.5em; padding-right: 3em; width: 45%; height: auto;">
+  </img>
+</a>
+
+In the spring of 2021, the Brood X cicadas emerged throughout much of the Mid-Atlantic region. Brood X are periodical cicadas that spend most of their lives underground, emerge in the spring every 17 years, breed, and then die. In their adult form, they produce an incredibly loud song to attract mates.
+
+Our team at the Smithsonian deployed automated sound recording units (ARUs) throughout the District of Columbia, Maryland, and Virginia. Our goal for this study was to determine how bird song may vary in response to cicada noise along a gradient of anthropogenic noise and urban intensity.
+
+In this exercise, you will explore cicada observations collected by iNaturalist community science participants. Early reports by iNaturalist observers helped us to determine the appropriate locations to place our ARUs.
+
+<!-- A div is a container for html. I assign it to the class "my secret that
+we created above -->
+<div class = "mysecret">
+<!-- The i tag is commonly used to create italic text, but it can also be 
+used to create icons -->
+<i class="fas fa-user-secret"></i> When I create an R Markdown file to communicate a coding process, I usually work in a .R script file and copy-and-paste the code into the R Markdown document at the end.
+</div>
+
+<hr>
+
+<span style = "color: red; font-size: 36px"><i class="fas fa-exclamation-triangle"></i> **Important**</span> 
+
+To receive full credit for a given question, please ensure that the result you provide **only** answers the given question. For example, in the table below, if you were asked to determine the value in column `b` where column `a` is equal to "hello" you would provide the following code:
+
+```{r example}
+tibble(
+  a = c('hello', 'world'),
+  b = 1:2) %>% 
+  filter(a == 'hello') %>% 
+  pull(b)
+```
+
+<hr>
+
+## Grading
+
+The points allotted for each question are provided in highlighted red bold text (e.g., <span class = "score">[1.0]</span>) within the question itself. When applicable, total points for a question may represent the sum of individually graded components, which are provided in red text (e.g., <span class = "subscore">[1.0]</span>).
+
+**Points may be deducted from each question's total:** 
+
+* Use only functions other than those listed in "Functions that you may use in this assignment" [50%]
+* Do not include any assignments other than those specified in the question [50%]
+* Unless specified otherwise, each question must be answered in a single piped statement [50%]
+* Include a comment at the start of each code block [25%]
+* Include a comment for each line of code that modifies a dataset [10% per violation]
+* Ensure that all code is properly indented [10% per violation]
+* Ensure that your code follows modern coding conventions (see *Best practices in modern R coding*) [10% per violation]
+
+*Note: The maximum deduction is the total points value for a given question*
+
+You must ensure that your R Markdown document **runs out-of-the-box** -- in other words, the document will knit without error. Some tips for doing so:
+
+* Do not maintain your project folder in a location that is backed up by an online directory (e.g., Dropbox, iCloud)
+* Ensure that all file paths are equivalent to those in this document (e.g., in `source()` or `read_csv()`)
+* Do not use `setwd()` in your code (***Never** use `setwd()`!*)
+* If one of your code chunks contains an error, include `eval = FALSE` in the options for that chunk
+* Prior to submission, clear all objects from your global environment prior to knitting your R Markdown document
+<hr>
+
+
+<div>
+<button class="accordion">Functions that you may use in this assignment</button>
+<div class="panel">
+
+In this assignment, you may use **only** the following R functions (*Note: If you are unclear on what a given function does, use `?` to view the help file!*):
+
+* base::<-
+* base::=
+* base:: ::
+* base::(
+* base::)
+* base::==
+* base::%in%
+* base::c
+* base::library
+* base::min
+* base::names
+* base::rm
+* base::tolower
+* dplyr::arrange
+* dplyr::filter
+* dplyr::group_by
+* dplyr::full_join
+* dplyr::inner_join
+* dplyr::mutate
+* dplyr::n
+* dplyr::select
+* dplyr::summarize
+* ggplot2::aes
+* ggplot2::geom_sf
+* ggplot2::ggplot
+* ggplot2::scale_fill_viridis_c
+* ggplot2::theme_set
+* ggplot2::theme_void
+* kableExtra::kable
+* kableExtra::kable_styling
+* magrittr::%>%
+* readr::read_csv
+* rlang::set_names
+* sf::st_as_sf
+* sf::st_crs
+* sf::st_filter
+* sf::st_join
+* sf::st_read
+* sf::st_transform
+* tibble::as_tibble
+
+*Note: The packages dplyr, ggplot2, magrittr, readr, rlang, and tibble are all part of the tidyverse and are loaded with `library(tidyverse)`.*
+
+</div>
+</div>
+
+<hr>
+
+## Getting started
+
+Open R Studio. Please ensure that the Global Options for R Markdown are set to "Show output preview in Viewer Pane". This will allow you to view the knitted document (i.e., the html version of this file) right next to your code.
+
+As always, please ensure that you are starting with a clean session. Please do the following before continuing:
+
+* If there are any script files open in your source pane. Close them. If any of the file titles are blue, save them prior to closing.
+
+* In the *Environment* tab of your **workspace pane**, ensure that your **global environment** is empty. If it is not, click the *broom* to remove all objects.
+
+* In the *History* tab of your **workspace pane**, ensure that your history is empty. If it is not, click the *broom* to remove your history.
+
+<div class = "now_you">
+<i class="fas fa-user-circle"></i> 
+
+<hr>
+
+1\. <span class = "score">[0.5]</span> Save and knit this document:
+
+* Replace my name in the YAML header with yours <span class = "subscore">[0.1]</span>
+* Add the current date in the YAML header <span class = "subscore">[0.1]</span>
+* Save the *.rmd* file in the **output** folder of your project as (*but replace my name with yours*): `assignment_4_Evans_Brian.rmd` <span class = "subscore">[0.3]</span>
+</div>
+<hr>
+
+## The setup
+
+**All** of my scripts start with a setup section where I load libraries, set session options, conduct initial data loading, and early processing steps.
+
+<div class = "now_you">
+<i class="fas fa-user-circle"></i> 
+<hr>
+2\. <span class = "score">[0.5]</span> Load the `sf`, `lubridate`, and `tidyverse` libraries.
+
+```{r question_2, results = 'hide', message = FALSE, warning = FALSE}
+
+# Paste your code in here!
+
+```
+
+3\. <span class = "score">[0.5]</span> Set the theme of *all* of the plots in this document to `theme_void()`.
+
+```{r question_3, message = FALSE, warning = FALSE}
+
+# Paste your code in here!
+
+```
+
+4\. <span class = "score">[1.0]</span> Read in and process the file `cicadas_brood_x_2021.csv`. In doing so:
+
+* <span class = "subscore">[0.25]</span> Load the data as a tibble;
+* <span class = "subscore">[0.25]</span> Subset the data to where the quality grade is classified as "research";
+* <span class = "subscore">[0.25]</span> Subset the data to the fields `datetime`, `scientific_name`, `user`, `longitude`, and `latitude`;
+* <span class = "subscore">[0.25]</span> Assign the data to your global environment with the name `cicadas_temp`.
+
+```{r question_4, message = FALSE, warning = FALSE}
+
+# Paste your code in here!
+
+```
+
+
+5\. <span class = "score">[1.0]</span> Read and processes the file `counties.geojson` (*or `counties_low_res.geojson` if you have memory issues!*). In doing so:
+
+* <span class = "subscore">[0.25]</span> Load the data into your global environment as a simple features shapefile;
+* <span class = "subscore">[0.25]</span> Convert all field names to lowercase;
+* <span class = "subscore">[0.25]</span> Transform the Coordinate Reference System (CRS) of the object to EPSG 2283 (a CRS often used for Virginia);
+* <span class = "subscore">[0.25]</span> Assign the name `counties_temp` to the resultant object.
+
+```{r question_5, message = FALSE, warning = FALSE}
+
+# Paste your code in here!
+
+```
+
+</div>
+<hr>
+
+## Subsetting data
+
+### About the data
+
+The `cicadas_temp` file represents research-grade iNaturalist observations of Brood X periodical cicadas from February through September of 2021. These data contain the following fields:
+
+* `datetime`: The date and time of the observation, formatted as an ISO 8601 (yyyy-mm-dd hh:mm:ss) datetime object and reported in UTC;
+* `scientific_name`: The genus and species of the observed cicada;
+* `user`: The user's login name;
+* `place_guess`: Best guess for the location of the observation;
+* `longitude`: The longitude of an observation, recorded in EPSG 4326;
+* `latitude`: The latitude of an observation, recorded in EPSG 4326;
+* `image_url`: The address of the image online;
+* `quality_grade`: Whether the species identification can be trusted, based on expert opinion -- options include "casual", "needs_id", and "research" (verified by experts);
+* `description`: Notes that users may submit with their observations.
+
+<div class = "now_you">
+<i class="fas fa-user-circle"></i> 
+
+6\. <span class = "score">[1.0]</span> Brood X cicada are comprised of three species, *Magicicada cassinii*, *M. septendecim*, and *M. septendecula*. A large proportion of the observations (about 60%) could not be identified to species (you can explore this with `group_by()` and `summarize()`) and one of the observations was of a 13-year periodical cicada, `M. tredecim`. 
+
+* <span class = "subscore">[0.25]</span> Subset the data to Brood X cicada that could be identified to species;
+* <span class = "subscore">[0.5]</span> Assign the object to your global environment with the name `cicadas_brood_x`;
+* <span class = "subscore">[0.25]</span> Remove `cicadas_temp` from your global environment.
+
+
+```{r question_6, message = FALSE, warning = FALSE}
+
+# Paste your code in here!
+
+```
+
+</div>
+
+When working with spatial data, it's often necessary to subset the **spatial extent** of your files to your study area. This will save a lot of processing time (and, potentially, help you avoid out-of-memory errors!).
+
+<div class = "now_you">
+<i class="fas fa-user-circle"></i> 
+
+7\. <span class = "score">[1.0]</span> Subset `counties_temp` to counties in the District of Columbia, Maryland, or Virginia <span class = "subscore">[0.5]</span>, assign to your global environment as `counties` <span class = "subscore">[0.25]</span>, and remove `counties_temp` from your global environment <span class = "subscore">[0.25]</span>.
+
+```{r question_7, message = FALSE, warning = FALSE}
+
+# Paste your code in here!
+
+```
+
+
+8\. <span class = "score">[1.5]</span> Convert `cicadas_brood_x` to an `sf` point file <span class = "subscore">[0.25 points]</span> and subset to our area of interest. In doing so:
+
+* <span class = "subscore">[0.25]</span> Transform the CRS of the object to the same projection as `counties`;
+* <span class = "subscore">[0.5]</span> Subset the data to observations in the District of Columbia, Maryland, or Virginia;
+* <span class = "subscore">[0.25]</span> Assign the name `cicadas_sf` to the resultant object;
+* <span class = "subscore">[0.25]</span> Remove `cicadas_brood_x` from your global environment.
+
+```{r question_8, message = FALSE, warning = FALSE}
+
+# Paste your code in here!
+
+```
+
+## Data exploration
+
+In evaluating the distributions of Brood X for our experiment, we were interested in when each species of cicada emerged and where the most cicadas were observed.
+
+<div class = "now_you">
+<i class="fas fa-user-circle"></i> 
+
+9\. <span class = "score">[1.5]</span> Generate a `kable` <span class = "subscore">[0.25]</span> that displays the **datetime** that each species of cicada <span class = "subscore">[0.5]</span> was **first observed** in each state <span class = "subscore">[0.5]</span>. Please arrange the table from earliest to latest datetime <span class = "subscore">[0.5]</span> (*Note: The columns of the summary table should be `state_name`, `scientific_name`, and `datetime`*).
+
+```{r question_9, message = FALSE, warning = FALSE}
+
+# Paste your code in here!
+
+```
+
+<br>
+10\. <span class = "score">[1.5]</span>. Generate a choropleth map of counties <span class = "subscore">[0.5]</span>, where:
+
+* <span class = "subscore">[0.5]</span> The fill color is determined by the number of cicadas that were observed in each county;
+* <span class = "subscore">[0.5]</span> Counties with no observations are colored light gray.
+
+```{r question_10, message = FALSE, warning = FALSE}
+
+# Paste your code in here!
+
+```
+</div>
+
+<hr>
+
+<script>
+var acc = document.getElementsByClassName("accordion");
+var i;
+
+for (i = 0; i < acc.length; i++) {
+  acc[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var panel = this.nextElementSibling;
+    if (panel.style.display === "block") {
+      panel.style.display = "none";
+    } else {
+      panel.style.display = "block";
+    }
+  });
+}
+</script>
