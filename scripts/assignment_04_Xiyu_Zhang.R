@@ -10,4 +10,5 @@ library(tidyverse)
 
 # Set the theme -----------------------------------------------------------
 
-
+theme_set(
+  new = theme_viod())
