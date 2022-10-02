@@ -293,7 +293,11 @@ As always, please ensure that you are starting with a clean session. Please do t
 
 ```{r question_2, results = 'hide', message = FALSE, warning = FALSE}
 
-# Paste your code in here!
+# Load libraries
+
+library(sf)
+library(lubridate)
+library(tidyverse)
 
 ```
 
@@ -301,7 +305,10 @@ As always, please ensure that you are starting with a clean session. Please do t
 
 ```{r question_3, message = FALSE, warning = FALSE}
 
-# Paste your code in here!
+# Set the theme of all plots
+
+theme_set(
+  new = theme_void())
 
 ```
 
@@ -314,7 +321,24 @@ As always, please ensure that you are starting with a clean session. Please do t
 
 ```{r question_4, message = FALSE, warning = FALSE}
 
-# Paste your code in here!
+# read in and process cicadas data
+
+# assign the data to global environment with the specific name
+
+cicadas_temp <-
+  
+  # load the data as a tibble
+  
+  read_csv('data/raw/cicadas_brood_x_2021.csv') %>%
+  
+  # subset the data where the quality grade is 'research'
+  
+  filter(quality_grade == 'research') %>% 
+  
+  # subset the data to the fields datetime, scientific_name, 
+  # user, longitude, and latitude
+  
+  select(datetime, scientific_name, user, longitude, latitude)
 
 ```
 
@@ -328,7 +352,31 @@ As always, please ensure that you are starting with a clean session. Please do t
 
 ```{r question_5, message = FALSE, warning = FALSE}
 
-# Paste your code in here!
+# Read in and process counties data
+
+# assign the data to global environment with the specific name
+
+counties_temp <-
+  
+  # load the data as a simple features shapefile
+  
+  st_read('data/raw/shapefiles/counties.geojson') %>% 
+  
+  # convert all field name to lowercase
+  
+  set_names(
+    
+    # extract the name of this data set
+    
+    names(.) %>% 
+      
+      # convert it into lowercase
+      
+      tolower()) %>% 
+  
+  # transform the CRS to EPSG 2283
+  
+  st_transform(crs = 2283)
 
 ```
 
@@ -363,7 +411,26 @@ The `cicadas_temp` file represents research-grade iNaturalist observations of Br
 
 ```{r question_6, message = FALSE, warning = FALSE}
 
-# Paste your code in here!
+# Subset the data of Brood X cicada
+
+# assign the subset object to global environment
+
+cicadas_brood_x <-
+  
+  # subset data in cicadas_temp that could be identified to species
+  
+  cicadas_temp %>% 
+  
+  # interest observation's scientific_name should among these three
+  
+  filter(scientific_name %in% 
+           c('Magicicada cassinii', 
+             'Magicicada septendecim',
+             'Magicicada septendecula'))
+  
+# remove cicadas_temp from the global environment
+
+rm(cicadas_temp)
 
 ```
 
@@ -378,7 +445,26 @@ When working with spatial data, it's often necessary to subset the **spatial ext
 
 ```{r question_7, message = FALSE, warning = FALSE}
 
-# Paste your code in here!
+# subset counties in DMV area
+
+# assign to global environment with specific name
+
+counties <-
+  
+  # subset counties in DMV area
+  
+  counties_temp %>% 
+  
+  # data of interest's state_name should among these three
+  
+  filter(state_name %in%
+           c('District of Columbia',
+             'Maryland',
+             'Virginia'))
+
+# remove counties_temp from the global environment
+
+rm(counties_temp)
 
 ```
 
@@ -392,7 +478,40 @@ When working with spatial data, it's often necessary to subset the **spatial ext
 
 ```{r question_8, message = FALSE, warning = FALSE}
 
-# Paste your code in here!
+# convert and subset cicadas_brood_x
+
+# assign specific name to the subject in global environment
+
+cicadas_sf <-
+  
+  # convert it to an sf point file
+  
+  cicadas_brood_x %>% 
+  st_as_sf(
+    
+    # data in 'longitude' and 'latitude' columns are coordinates
+    
+    coords = c('longitude', 'latitude'),
+    
+    # the initial CRS is EPSG 4326
+    
+    crs = 4326) %>% 
+  
+  # transform the CRS to the same projection as counties
+  
+  st_transform(
+    
+    # get the CRS of counties
+    
+    st_crs(counties)) %>% 
+  
+  # subset the data to observations in DMV area
+  
+  st_filter(counties)
+
+# remove cicadas_brood_x from global environment
+
+rm(cicadas_brood_x)
 
 ```
 
@@ -407,7 +526,48 @@ In evaluating the distributions of Brood X for our experiment, we were intereste
 
 ```{r question_9, message = FALSE, warning = FALSE}
 
-# Paste your code in here!
+# generate a kable displaying that each species of cicada was first 
+# observed in each state
+
+cicadas_sf %>% 
+  
+  # conduct a spatial join based on geometry, so that get to know the state 
+  # of each observation 
+  
+  st_join(
+    counties %>% 
+      
+      # focus on state-level information
+      
+      select(state_name)) %>% 
+  
+  # convert the sf object into a tibble
+  
+  as_tibble() %>% 
+  
+  # for observations for each species in each state
+  
+  group_by(scientific_name, state_name) %>% 
+  
+  # filter the earliest time
+  
+  filter(datetime == min(datetime)) %>% 
+  
+  # select the columns of interest
+  
+  select(state_name, scientific_name, datetime) %>% 
+  
+  # arrange the table from earliest to latest datetime
+  
+  arrange(datetime) %>% 
+  
+  # generate a kable for display
+  
+  kableExtra::kable() %>% 
+  
+  # set a style of the kable
+  
+  kableExtra::kable_styling(latex_options = "striped")
 
 ```
 
@@ -419,7 +579,49 @@ In evaluating the distributions of Brood X for our experiment, we were intereste
 
 ```{r question_10, message = FALSE, warning = FALSE}
 
-# Paste your code in here!
+# generate a choropleth map of counties visualizing the number of 
+# cicadas that were observed in each county
+
+cicadas_sf %>% 
+  
+  # conduct a spatial join, combine each observation with a county
+  
+  st_join(
+    counties %>% 
+      
+      # focus on county-level information, select county names
+      
+      select(name)) %>% 
+  
+  # convert the sf object into a tibble
+  
+  as_tibble() %>% 
+  
+  # in each county,
+  
+  group_by(name) %>% 
+  
+  # count the total observation amount 
+  
+  summarise(n = n()) %>% 
+  
+  # combine the geometry information of counties with observation amounts,
+  # 'counties' comes first to keep counties with NA value
+  
+  full_join(counties, .) %>% 
+  
+  # generate a choropleth map
+  
+  ggplot() +
+  
+  # the fill color is determined by number of observations
+  
+  geom_sf(aes(fill = n)) +
+  
+  # set counties with no observations color as light gray
+  
+  scale_fill_viridis_c(
+    na.value = '#dcdcdc') 
 
 ```
 </div>
