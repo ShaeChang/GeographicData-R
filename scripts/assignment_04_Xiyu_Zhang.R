@@ -34,6 +34,8 @@ cicadas_temp<-
   # user, longitude, and latitude
   
   select(datetime, scientific_name, user, longitude, latitude)
+  
+  # select(c(datetime:user, longitude:latitude)) 更简洁的选择方式
 
 # Read in and process counties data
 
