@@ -1,0 +1,383 @@
+---
+title: "Quiz 1: District crime"
+author: "Xiyu Zhang"
+date: "2022-10-17"
+output: html_document
+---
+
+<!-- Please knit this right away! The additional information for (html and css)
+are provided to help you build on your current R Markdown toolbox. You will not
+be responsible for learning these additional tools at this point. -->
+
+<!-- The head tag, <head>, is a container for metadata in an html document. 
+We can use it to define styles and do lots of other cool things things. -->
+<head>
+<!-- The link tag, <link>, creates a relationship between this file and
+an external source. Here, I'm linking font-awesome so I can include a 
+couple of icons that I like (user-secret and user-circle) -->
+<link 
+  rel="stylesheet" 
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<!-- Here I'm linking to a javascript file that will give us access to font awesome -->
+  <script src="https://kit.fontawesome.com/03064bdd6c.js" crossorigin="anonymous"></script>
+</head>
+<!-- Note in the above that some html tags, like <head> need to be closed 
+with </head>. Others, like <link> don't need a closing tag. -->
+
+```{css, echo = FALSE}
+/* We can use the body tag to change the default text size of the whole document. */
+  
+body {
+  font-size: 18px
+}
+
+/* We can increase the space between our list items */
+  
+ul, li {
+  padding-top: 0.25em;
+}
+
+pre {
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+
+/* I can add custom classes with a period symbol. */
+
+.score {
+  font-weight: bold;
+  color: red;
+  background-color: #ffff80;
+}
+
+/* I create an custom class for user secrets. Have a look at the area surrounding my spy icons below to see what this does. Also, do you notice any similarity to your ggPlot theme elements? */
+  
+.mysecret {
+  border: 1px solid #999999;
+  border-style: solid; 
+  padding: 20px; 
+  border-radius: 25px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+.myhint {
+ color: blue; 
+ font-size: 0.75em;
+ font-style: italic;
+}
+
+/* Here, I add a custom class for area surrounding the graded portions of this assignment.*/
+
+.now_you {
+  border-left: 8px solid #292093;
+  background-color: #e6ffff;
+  padding: 16px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+/* Here I will add some custom css on my font awesome icons*/
+  
+.fas {
+  font-size:36px
+}
+  
+.subscore {
+  font-size: 14px;
+  color: red;
+}
+
+/* I can modify a current class like the below. To see what this does,
+have a look at where I am using block quotes in the document.*/
+  
+blockquote {
+  font-size: 18px;
+  border-left: 8px solid #292093;
+  background-color: #e6ffff;
+  padding-left: 16px;
+  padding-right: 16px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+/* Accordion style */
+.accordion {
+  background-color: #e6f0ff;
+  color: #000000;
+  cursor: pointer;
+  padding: 18px;
+  width: 100%;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #ffffff;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+  transition: 0.4s;
+}
+
+.active, .accordion:hover {
+  background-color: #80b3ff; 
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.panel {
+  padding: 0 18px;
+  display: none;
+  background-color: #eeffff;
+  overflow: hidden;
+}
+```
+
+<!-- Here is the setup for knitr. I had to include tidyverse so I could
+include a tidyverse example with my Important warning statement below-->
+
+```{r knitr_setup, include = FALSE}
+options(knitr.table.format = "html")
+
+knitr::opts_chunk$set(error = TRUE)
+
+library(tidyverse)
+```
+
+<hr>
+
+## Overview
+<div class = "row" style = "padding-left: 1em">
+<a title = "The city">
+  <img  src = "https://dcist.com/wp-content/uploads/sites/3/2019/10/jeffersonmemorial-768x511.jpg"
+        alt="Jefferson memorial"
+        style = "float: right; 
+                 padding-left: 1em; 
+                 padding-bottom: 0.5em; 
+                 padding-right: 0em; 
+                 width: 50%; 
+                 height: auto;">
+  </img>
+</a>
+
+In this exercise, you will explore crime data from the District of Columbia in 2020. The data for this exercise were retrieved from <a href = "https://opendata.dc.gov/" target = "_blank">Open Data DC</a> in October of 2021 and contain the location of crimes in the city, as reported by the District of Columbia Metropolitan Police Department. Each crime record includes the geographic coordinates of the crime (recorded in EPSG 4326), the date and time it occurred, whether it was a *violent* or *property* crime, and the type of offense. Your job will be to generate maps of these crimes across the District.
+
+This exercise will give you an opportunity to test your *sf*, *purrr::map*, and *tmap* skills!
+
+<!-- A div is a container for html. I assign it to the class "my secret that
+we created above -->
+</div>
+
+<hr>
+
+<span style = "color: red; font-size: 36px"><i class="fas fa-exclamation-triangle"></i> **Important**</span> 
+
+To receive full credit for a given question, please ensure that the result you provide **only** answers the given question. For example, in the table below, if you were asked to determine the value in column `b` where column `a` is equal to "hello" you would provide the following code:
+
+```{r example}
+tibble(
+  a = c('hello', 'world'),
+  b = 1:2) %>% 
+  filter(a == 'hello') %>% 
+  pull(b)
+```
+
+<hr>
+
+## Grading
+
+The points allotted for each question are provided in highlighted red bold text (e.g., <span class = "score">[1.0]</span>) within the question itself. When applicable, total points for a question may represent the sum of individually graded components, which are provided in red text (e.g., <span class = "subscore">[1.0]</span>).
+
+**Points may be deducted from each question's total:** 
+
+* Use only functions other than those listed in "Functions that you may use in this exercise" [50%]
+* Do not include any assignments other than those specified in the question [50%]
+* Unless specified otherwise, each question must be answered in a single piped statement [50%]
+* Include a comment at the start of each code block [25%]
+* Include a comment for each line of code that modifies a dataset [10% per violation]
+* Ensure that all code is properly indented [10% per violation]
+* Ensure that your code follows modern coding conventions (see *Best practices in modern R coding*) [10% per violation]
+* Code parsimony [10% per violation]
+
+*Note: The maximum deduction is the total points value for a given question*
+
+<hr>
+
+
+<div>
+<button class="accordion">Functions that you may use in this exercise</button>
+<div class="panel">
+
+In this exercise, you may use **only** the following R functions (*Note: If you are unclear on what a given function does, use `?` to view the help file!*):
+
+* base::<-
+* base::=
+* base::(
+* base::)
+* base::$
+* base::!
+* base::~
+* base::==
+* base::c
+* base::library
+* base::list
+* base::names
+* base::tolower
+* base::unique
+* dplyr::filter
+* dplyr::group_by
+* dplyr::inner_join
+* dplyr::n
+* dplyr::pull
+* dplyr::select
+* dplyr::summarize
+* lubridate::year
+* magrittr::%>%
+* purrr::map
+* readr::read_csv
+* sf::st_as_sf
+* sf::st_crs
+* sf::st_filter
+* sf::st_join
+* sf::st_read
+* sf::st_transform
+* readr::read_csv
+* rlang::set_names
+* tibble::as_tibble
+* tmap::+
+* tmap::tm_basemap
+* tmap::tm_dots
+* tmap::tm_layout
+* tmap::tmap_mode
+* tmap::tm_shape
+* tmap::tm_polygons
+* tmaptools::palette_explorer 
+
+<span class = "myhint">**Note**: The packages dplyr, ggplot2, magrittr, readr, rlang, and tibble are all part of the tidyverse and are loaded with `library(tidyverse)`.</span>
+
+</div>
+</div>
+
+<hr>
+
+## Getting started
+
+Open R Studio. Please ensure that the Global Options for R Markdown are set to "Show output preview in Viewer Pane". This will allow you to view the knitted document (i.e., the html version of this file) right next to your code.
+
+As always, please ensure that you are starting with a clean session. Please do the following before continuing:
+
+* If there are any script files open in your source pane. Close them. If any of the file titles are blue, save them prior to closing.
+
+* In the *Environment* tab of your **workspace pane**, ensure that your **global environment** is empty. If it is not, click the *broom* to remove all objects.
+
+* In the *History* tab of your **workspace pane**, ensure that your history is empty. If it is not, click the *broom* to remove your history.
+
+<div class = "now_you">
+<i class="fas fa-user-circle"></i> 
+
+<hr>
+
+1\. <span class = "score">[0.5]</span> Save you R script file as (*but replace my name with yours*): `quiz_1_Evans_Brian.R`.
+
+</div>
+<hr>
+
+## The setup
+
+**All** of my scripts start with a setup section where I load libraries, set session options, conduct initial data loading, and early processing steps.
+
+```{r setup, eval = FALSE}
+# setup ------------------------
+
+library(sf)
+library(lubridate)
+library(tmap)
+library(tidyverse)
+
+# Read in and process census data:
+
+census <-
+  st_read('data/raw/shapefiles/dc_census.geojson') %>%
+  set_names(
+    names(.) %>% 
+      tolower()) %>% 
+  select(!statefp)
+
+# Read in and process crimes data:
+
+crimes <-
+  read_csv('data/raw/dc_crimes.csv') %>%
+  
+  # Subset to violent crimes in 2020:
+  
+  filter(offense_group == 'violent',
+         year(date_time) == 2020) %>% 
+  
+  # Make spatial:
+  
+  st_as_sf(
+    coords = c('longitude', 'latitude'),
+    crs = 4326) %>% 
+  
+  # Transform to the same CRS as census:
+  
+  st_transform(crs = st_crs(census))
+
+# A vector of unique offenses:
+
+offenses <-
+  crimes %>% 
+  pull(offense) %>% 
+  unique()
+```
+
+
+<div class = "now_you">
+<i class="fas fa-user-circle"></i> 
+<hr>
+
+2\. <span class = "score">[1.5]</span>. Using `purrr::map()` and the `offenses`, `crimes`, `census` objects:
+
+* <span class = "subscore">[1.0]</span> Generate a list of shapefiles that tallies the number of violent crimes committed by census tract and `offense`. You should have one shapefile per type of offense.
+* <span class = "subscore">[0.25]</span> Name your list items by offense type.
+* <span class = "subscore">[0.25]</span>Assign the list to your global environment with the name "crimes_by_offense".
+
+<br>
+
+3\.	<span class = "score">[0.5]</span> Using a single `purrr::map()` function, transform the CRS of `crimes_by_offense` to 4326 <span class = "subscore">[0.25]</span> and assign the object to your global environment with the name `crimes_by_offense_4326` <span class = "subscore">[0.25]</span>.
+
+<br>
+
+4\.	<span class = "score">[1.0]</span> Using a single `purrr::map()` function:
+
+* <span class = "subscore">[0.5]</span> Convert the CRS of `crimes` and `census` objects to EPSG 4326;
+* <span class = "subscore">[0.25]</span> Assign the names "crimes" and "census" to the list items;
+* <span class = "subscore">[0.25]</span> Assign the list to your global environment with the name `shapes_4326`.
+
+<br>
+
+5\. <span class = "score">[1.5]</span> Using `shapes_4326` and `crimes_by_offense_4326`, generate an interactive tmap <span class = "subscore">[0.5]</span> where:
+
+* <span class = "subscore">[0.25]</span> The fill color of census tracts is determined by the number of robberies in a given tract;
+* <span class = "subscore">[0.25]</span> Homicides are displayed as clusters of points;
+* <span class = "subscore">[0.25]</span> OpenStreetMap and Esri.WorldImagery are provided as background
+layers;
+* <span class = "subscore">[0.25]</span> The layers are named "Robberies" and "Homicides".
+
+</div>
+
+<hr>
+ <script>
+var acc = document.getElementsByClassName("accordion");
+var i;
+
+for (i = 0; i < acc.length; i++) {
+  acc[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var panel = this.nextElementSibling;
+    if (panel.style.display === "block") {
+      panel.style.display = "none";
+    } else {
+      panel.style.display = "block";
+    }
+  });
+}
+</script>
