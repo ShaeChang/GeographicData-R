@@ -41,15 +41,28 @@ polygons <-
       
       # EPSG 32618 is UTM zone 18N for Washington DC:
       
-      st_transform(crs = 32618))
+      st_transform(crs = 32618) %>% 
+      
+      # fix invalid geometries:
+      
+      st_make_valid())
 
 # Dissolve inner borders from polygons:
 
-
+unionized_polygons <-
+  purrr::map(
+    polygons,
+    ~ .x %>% 
+      st_union() %>% 
+      st_sf())
 
 # Remove water from census shape:
 
+census_no_water <-
+  polygons$census %>% 
+  st_difference(unionized_polygons$water)
 
+  # why? what does st_difference do exactly?
 
 # load points -------------------------------------------------------------
 
@@ -69,7 +82,20 @@ points <-
     # Location of sick birds from DC's wildlife rehab center:
     
     birds = 
-      st_read('data/raw/shapefiles/sick_birds.geojson'))
+      st_read('data/raw/shapefiles/sick_birds.geojson')) %>% 
+  
+  # Process the shapes:
+  
+  map(
+    ~ .x %>% 
+      
+      # transform to the same CRS as the polygons:
+      
+      st_transform(crs = st_crs(polygons$census)) %>% 
+      
+      # filter points to the Washington DC region:
+      
+      st_filter(polygons$census)) # just like a spatial join
 
 # Now you! Modify the script above such that the point data only include
 # observations in Washington DC.
@@ -92,6 +118,7 @@ tm_basemap(
   # Add water layer:
   
   polygons$water %>%
+  st_make_valid() %>% # because one of the polygon has self-intersection
   tm_shape(name = 'Water bodies') +
   tm_polygons(col = 'blue')
 
@@ -106,7 +133,8 @@ tm_basemap(
   
   points$cicadas %>%
   tm_shape(name = 'Cicadas') +
-  tm_markers() +
+  tm_markers() + # cluster the points by default. 
+  # Once zoom in, blue markers marked cicadas
   
   # Add locations of sick birds:
   
@@ -114,12 +142,27 @@ tm_basemap(
   tm_shape(name = 'Sick birds') +
   tm_dots(col = 'red',
           size = 0.05)
+  # no cluster for birds, 
+  # but make the markers red and a little bit larger for emphasize
 
 # Now you! Use purrr::map to calculate the number of sick birds and cicadas per
 # census block:
 
 counts_by_census <-
-  points
+  points %>% 
+  map(
+    ~ .x %>% 
+      st_join(census_no_water, .) %>% 
+      
+      # order matters here, why?
+      
+      as_tibble() %>% # don't forget 'as_tibble' for the speed of calculation
+      group_by(geoid) %>% 
+      summarise(n = n()) %>% 
+      left_join(census_no_water, .) %>% 
+      mutate(area = st_area(.) %>% 
+               units::set_units('km^2'),
+             density = n/area))
 
 # Basemap:
 
@@ -135,7 +178,7 @@ tm_basemap(
   tm_polygons(
     title = 'Cicadas',
     style = 'kmeans',
-    col = 'n',
+    col = 'density',
     palette = 'viridis') +
   
   # Birds:
@@ -145,16 +188,30 @@ tm_basemap(
   tm_polygons(
     title = 'Sick birds',
     style = 'kmeans',
-    col = 'n',
+    col = 'density',
     palette = 'YlOrRd',
-    n = 5)
+    n = 5) +
+  
+  polygons$water %>%
+  st_make_valid() %>% 
+  tm_shape(name = 'Water bodies') +
+  tm_polygons(col = 'blue')
 
+# However, the tracts are in different sized. 
+# Thus we need to implement area calculations.
 
 # area calculations -------------------------------------------------------
 
 # Calculate cicadas per square km:
 
-counts_by_census$cicadas
+counts_by_census$cicadas %>% 
+  mutate(area = 
+           st_area(.) %>% 
+           units::set_units('km^2'),
+         density = n/area)
+
+  # convert the unit of count for better communication,
+  # considering the final scale of 'cicadas per square km'
 
 # Modify the code block above such that area is added as a column in the
 # counts_by_census$cicadas.
@@ -172,6 +229,10 @@ tm_basemap(
     'Esri.WorldImagery')) +
   
   polygons$census %>% 
+  st_difference(unionized_polygons$water) %>% 
+  
+  # remove any water from the census shape file
+  
   tm_shape() +
   tm_polygons(alpha = 0.7) +
   
@@ -217,13 +278,19 @@ tm_basemap(
   # Birds:
   
   counts_by_census$birds %>% 
+  st_centroid() %>% 
+  
+  # use 'centroid' for the convenience of comparing the two distribution
+  # in one picture
+  
   tm_shape(name = 'Bird mortality by census tract') +
-  tm_polygons(
+  tm_dots(
     title = 'Sick birds',
     style = 'quantile',
     col = 'density',
     palette = 'YlOrRd',
-    n = 5)
+    n = 5,
+    size = 0.1)
 
 # buffers and intersections -----------------------------------------------
 
@@ -231,6 +298,20 @@ tm_basemap(
   c('Esri.WorldTopoMap',
     'OpenStreetMap',
     'Esri.WorldImagery')) +
+  
+  unionized_polygons$rock_creek %>% 
+  
+  # add a buffer because animals will travel to rock creek for food and 
+  # water within 500m
+  
+  st_buffer(dist = 500) %>% 
+  
+  # use intersections because the buffer exceed the north border of DC area
+  # opposite to st_difference()
+  
+  st_intersection(unionized_polygons$census) %>% 
+  tm_shape() +
+  tm_polygons(col = 'yellow') +
   
   unionized_polygons$rock_creek %>% 
   tm_shape() +
@@ -246,12 +327,19 @@ tm_basemap(
 # Distance to park:
 
 points$cicadas %>% 
-  st_distance(polygons$rock_creek)
+  st_distance(unionized_polygons$rock_creek,
+              by_element = TRUE)
 
 # Add distance to Rock Creek Park to points$cicadas as a vector called
 # distance_to_park:
 
-points$cicadas
+points$cicadas %>% 
+  mutate(
+    distance_to_park = 
+      st_distance(
+        .,
+        unionized_polygons$rock_creek,
+        by_element = TRUE))
 
 # Now you! Modify the tmap below such that cicada points are colored by
 # distance-from-park:
@@ -266,5 +354,12 @@ tm_basemap(
   tm_polygons(col = '#228b22') +
   
   points$cicadas %>% 
+  mutate(
+    distance_to_park = 
+      st_distance(
+        .,
+        unionized_polygons$rock_creek,
+        by_element = TRUE)) %>% 
   tm_shape() +
-  tm_dots()
+  tm_dots(col = 'distance_to_park',
+          style = 'kmeans')
