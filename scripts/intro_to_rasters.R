@@ -46,7 +46,6 @@ polygons <-
       # Fix invalid geometries:
       
       st_make_valid())
- 
 
 # Dissolve inner borders from polygons:
 
@@ -98,6 +97,14 @@ points <-
 
 # load rasters ------------------------------------------------------------
 
+# cropping before transformation will definitely save time, 
+# because transforming rasters is also memory intensive
+
+temp <-
+  unionized_polygons$census %>% 
+  st_transform(5070) %>% 
+  terra::vect()
+
 imp <-
   terra::rast('data/raw/rasters/impervious_surface.tif')
 
@@ -112,10 +119,29 @@ rasters <-
     
     # 'map' could be both used on vectors and lists
     
-    ~ terra::rast(.x)) %>% 
-  set_names('canopy', 'imp', 'nlcd')
+    ~ terra::rast(.x) %>% 
+      terra::crop(temp) %>% 
+      terra::mask(temp)) %>% 
+  set_names('canopy', 'imp', 'nlcd') %>% 
+  
+  # create a raster stack - with plenty of raster layers
+  
+  terra::rast()
+
+rasters_prj <-
+  rasters %>% 
+  terra::project(y = 'epsg:32618',
+                 
+                 # ? use this method to preserve the type of each layers
+                 
+                 method = 'near') 
+  
+  # epsg 32618 is the UTM Zone that appropriate for Washington DC,
+  # and also the CRS of our shapefiles
 
 rm(imp)
+
+rm(temp)
 
 # the SpatVector ----------------------------------------------------------
 
@@ -139,19 +165,24 @@ rasters$can %>%
   # Because rasters are memory intensive, better to crop剪裁 the raster to a 
   # smaller object as early in the process as possible
   
-  terra::crop(
-    unionized_polygons$census %>% 
-      
-      # cropping before transformation will definitely save time, 
-      # because transforming rasters is also memory intensive
-      
-                st_transform(5070)) %>% 
+  terra::crop(temp) %>% 
+  
+  # however, 'crop' subsets data to an extent, but does not remove
+  # regions that don't overlap
+  # Use 'mask' function to turn all values outside of the shape file to NA.
+  
+  terra::mask(temp) %>% 
   terra::plot()
 
 # Now you! Use temp, the rasters list, and purrr::map() to crop and mask all
-# rasters to the DC shapefile:
+# rasters to the DC shapefile: 
+# (the result has been pasted into the 'load raster' sector)
 
-rasters
+rasters %>% 
+  map(
+    ~ .x %>% 
+      terra::crop(temp) %>% 
+      terra::mask(temp))
 
 # tmap --------------------------------------------------------------------
 
@@ -163,44 +194,129 @@ tm_basemap(
     'Esri.WorldImagery')) +
   
   # Canopy cover:
+  # (a layer of a raster stack could be used by the same reference method
+  # as an item from a list)
   
   tm_shape(rasters_prj$canopy) +
-  tm_raster()
+  
+  # add some transparency by using 'alpha'
+  
+  tm_raster(alpha = 0.6,
+            
+            # change the color palette to better represent forests
+            
+            palette = 'Greens') +
+  
+  # Impervious surface:
+  
+  tm_shape(rasters_prj$imp) +
+  tm_raster(alpha = 0.6,
+            palette = 'OrRd') +
+  
+  # Land cover:
+  
+  tm_shape(rasters_prj$nlcd) +
+  
+  # 'cat' means 'categorical raster'
+  
+  tm_raster(palette = 'cat',
+            style = 'cat')
 
 # extracting data from rasters --------------------------------------------
 
 # Global summary statistic, mean:
 
 rasters$imp %>% 
-  terra::global(mean)
+  
+  # to use the 'global' syntax, need to remove all NA values first
+  
+  terra::global(mean, na.rm = TRUE)
+  
+  # the output shows that the impervious land cover is 38%
 
 # Mean impervious surface by census tract:
 
 polygons$census %>% 
   st_transform(crs = 5070) %>% 
+  
+  # convert the sf object to a SpatVector, in use of the 'extract' function
+  
   terra::vect() %>% 
   terra::extract(
+    
+    # the name of raster that is extracting from
+    
     rasters$imp,
+    
+    # the name of the raster that is extracting to 
+    
     .,
+    
+    # the summary statistics of interest, here it is 'mean'
+    
     mean,
-    na.rm = TRUE)
+    
+    # exclude NAs
+    
+    na.rm = TRUE) %>% 
+  
+  # only perserve a vector of the mean impervious surface 
+  # of all of the census tract
+  
+  pull()
 
 # Now you! Add a field to polygons$census that represents the proportion of
 # impervious surface in each polygon:
 
-polygons$census
+polygons$census %>% 
+  
+  # can use 'mutate' for an sf object, too
+  
+  mutate(
+    imp = 
+      polygons$census %>% 
+      st_transform(crs = 5070) %>% 
+      terra::vect() %>% 
+      terra::extract(
+        rasters$imp,
+        .,
+        mean,
+        na.rm = TRUE) %>% 
+      pull())
 
-# Extract impervious surface to points:
+# Extract impervious surface to points: (What does it mean, in practical?)
 
-points$birds %>% 
-  st_transform(crs = 5070) %>% 
-  terra::vect() %>% 
-  terra::extract(rasters$imp, .) %>% 
-  pull(imp)
+points$birds %>%
+  mutate(
+    imp = 
+      points$birds %>% 
+      st_transform(crs = 5070) %>% 
+      terra::vect() %>% 
+      
+      # at each census tract where the number of sick birds found
+      
+      terra::extract(rasters$imp, .) %>% 
+      pull(imp))
+
+  # where does the 30m statistics come from? 
+  # because of the size of the pixels?
 
 # Now you! Add a field to points$birds that represents the proportion of
 # impervious surface within 500 m of each location:
 
 points$birds %>% 
-  st_transform(crs = 5070) %>% 
-  terra::vect()
+  mutate(
+    imp = 
+      points$birds %>% 
+      st_transform(crs = 5070) %>% 
+      
+      # generate a 500 meters' buffer around the point
+      
+      st_buffer(500) %>% 
+      terra::vect() %>% 
+      terra::extract(
+        rasters$imp,
+        .,
+        mean,
+        na.rm = TRUE) %>% 
+      pull(imp))
