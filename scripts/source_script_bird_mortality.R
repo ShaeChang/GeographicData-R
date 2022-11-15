@@ -1,6 +1,7 @@
 # Source script for bird mortality analysis
 
 library(tidyverse)
+library(sf)
 
 # A single non-spatial file:
 
@@ -92,9 +93,11 @@ rasters <-
     pattern = 'canopy|nlcd|imperv',
     full.names = TRUE) %>%
   purrr::map(
-    ~ terra::rast(.x) %>% 
-      terra::crop(census) %>% 
-      terra::mask(census)) %>%
+    ~ terra::rast(.x) %>%
+      terra::crop(census %>%
+                    terra::vect()) %>% 
+      terra::mask(census %>% 
+                    terra::vect())) %>%
   set_names('canopy', 'imp', 'nlcd') %>%
   terra::rast()
 

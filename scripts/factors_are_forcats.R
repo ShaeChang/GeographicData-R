@@ -4,7 +4,7 @@
 
 library(tidyverse)
 
-source('scripts/source_script.R')
+source('scripts/source_script_bird_mortality.R')
 
 read_rds('data/raw/forcats_data.rds') %>% 
   list2env(.GlobalEnv)
@@ -13,68 +13,136 @@ read_rds('data/raw/forcats_data.rds') %>%
 
 # What is a factor:
 
-age
+age %>% 
+  factor(levels = c('adult', 'juvenile')) %>% 
+  str()
 
 # Factors are dangerous and useful because of restrictive behavior:
 
-bad_age
+bad_age %>% 
+  str_replace('juv$', # specify only care about the string ENDED by 'juv'
+              'juvenile') %>%
+  factor(levels = c('adult', 'juvenile')) %>%
+  table()
 
 # Now you! Use str_replace to change the value “juv” to “juvenile” then
 # convert the resultant value to a factor with the levels “adult” and
 # “juvenile”:
 
-bad_age
+bad_age # shown as above
 
 # Factors can be ordered:
 
-c('small', 'medium', 'large')
+c('small', 'medium', 'large') %>% 
+  
+  # by default, levels are ordered alphabetically. 
+  # could also set by the argument 'levels', as below:
+
+  factor(levels = c('small', 'medium', 'large')) %>%
+  table()
 
 # Now you! Convert the character vector "spring" to a factor object where
 # month levels are ordered by when they occur then tally the number
 # of values per month:
 
-spring
+spring %>% 
+  factor(levels = 
+           c('March', 
+             'April', 
+             'May', 
+             'June')) %>% 
+  table()
 
 # forcats, recode -------------------------------------------------------
 
 # Recode levels fct_recode:
 
 bad_age %>% 
+  
+  # turn a string into another
+  # and, automatically convert the vector into a factor
+  
+  fct_recode(juvenile = 'juv',
+             unknown = 'unk') %>% 
   table()
 
 # Factors ... now with real data!
 
-bird_measures
+bird_measures %>% 
+  mutate(age = age %>% 
+           
+           # recode the 'HY' in age to 'juvenile'
+           
+           fct_recode(juvenile = 'HY')) %>% 
+  count(age)
 
 # Now you! Use fct_recode() to map the levels of sex to the values 'female',
 # 'male', and 'unknown':
+
+bird_measures %>% 
+  mutate(sex = sex %>% 
+           fct_recode(female = 'F',
+                      male = 'M',
+                      unknown = 'U'))
 
 # forcats,  collapse ----------------------------------------------------
 
 # fct_collapse:
 
 bird_measures %>% 
+  mutate(age = age %>% 
+           fct_collapse(juvenile = 'HY',
+                        
+                        # collapse the levels much more parsimoniously
+                        
+                        adult = c('AHY', 'ASY', 'SY'),
+                        
+                        unknown = 'U'
+                        
+                        # or, could use:
+                        # other_level = 'adult' at the end of other types
+                        
+                        )) %>% 
   count(age)
 
 # Now you! Use fct_collapse to map the observed sex of birds to the factor
 # levels “known” or “unknown”:
 
-bird_measures
+bird_measures %>% 
+  mutate(sex = sex %>% 
+           fct_collapse(unknown = 'U',
+                        other_level = 'known'))
 
 # forcats, drop ---------------------------------------------------------
 
 # Plot wing length by species:
 
 bird_measures %>% 
+  
+  # subsetting the data to the species that have at least 10 observations
+  
   group_by(common_name) %>% 
   filter(n() > 10) %>% 
   ungroup() %>%
+  
+  # use 'fct_rev' to reverse the order of the species on flipped x-axis,
+  # or 'fct_reorder(.x)' to order by another factor
+  # bc people usually read from the upper-left side of the plot
+  
   mutate(common_name = 
-           factor(common_name)) %>% 
+           factor(common_name) %>% 
+           fct_reorder(wing)) %>% 
+  
+  # pipe to ggplot to generate a boxplot
+  
   ggplot(
     aes(x = common_name,
         y = wing)) +
   geom_boxplot(fill = '#dcdcdc') +
+  
+  # flip the x and y axes, because of the long x-axis labels
+  # (but the actual references of x and y remain unchanged as below)
+  
   coord_flip() +
   labs(title = 'Wing length by bird species',
        x = 'Species',
@@ -91,7 +159,13 @@ bird_measures %>%
            fct_collapse(
              Juvenile = 'HY',
              'Young adult' = 'SY',
-             Adult = c('AHY', 'ASY'))) %>% 
+             Adult = c('AHY', 'ASY')) %>% 
+           
+           # relevel the factor from the youngest to the oldest
+           
+           fct_relevel(
+             c('Juvenile', 'Young adult', 'Adult')
+           )) %>% 
   ggplot(
     aes(x = age,
         y = wing)) +
@@ -109,6 +183,9 @@ bird_measures %>%
   filter(n() > 10) %>% 
   ungroup() %>%
   filter(common_name == 'Gray Catbird') %>% 
+  mutate(month = month %>% 
+           fct_relevel(
+             c('May', 'June', 'July'))) %>% 
   ggplot(
     aes(x = month,
         y = mass)) +
