@@ -12,11 +12,14 @@ tmap_mode('view')
 
 # Load data:
 
+  # using multiple scripts when operating a massive project,
+  # and it's parsimonious to use a source script to avoid repetition
+
 source('scripts/source_script_bird_mortality.R')
 
 # classifying polygons ----------------------------------------------------
 
-# Now you!Use if else to classify census tracts where the median income is lower
+# Now you! Use if else to classify census tracts where the median income is lower
 # than DC’s median income as “low” and all other tracts as “high” and assign the
 # results to income_class:
 
@@ -25,7 +28,11 @@ census %>%
     !is.na(income)) %>% 
   mutate(
     income_class = 
-      median(income))
+      if_else(income < median(income, na.rm = TRUE),
+              'low',
+              'high')) %>% 
+  tm_shape() +
+  tm_polygons(col = 'income_class')
 
 # The lower quartile:
 
@@ -33,7 +40,7 @@ census %>%
   filter(
     !is.na(income)) %>% 
   pull(income) %>% 
-  quantile(probs = 0.25)
+  quantile(probs = 0.75)
 
 # Now you! Classify median income by census tract as "low" if it is less than or
 # equal to the lower quartile, "high" it is greater than or equal to the upper
@@ -43,15 +50,60 @@ census %>%
   filter(
     !is.na(income)) %>% 
   mutate(
-    income_class = income)
+    income_class = 
+      case_when(
+        income <= income %>% 
+          quantile(probs = 0.25) ~ 'low',
+        income >= income %>% 
+          quantile(probs = 0.75) ~ 'high',
+        TRUE ~ 'medium')) %>% 
+  tm_shape() +
+  tm_polygons(col = 'income_class')
 
 # Spatial union by field values:
 
-
+census %>% 
+  filter(
+    !is.na(income)) %>% 
+  mutate(
+    income_class = 
+      case_when(
+        income <= income %>% 
+          quantile(probs = 0.25) ~ 'low',
+        income >= income %>% 
+          quantile(probs = 0.75) ~ 'high',
+        TRUE ~ 'medium')) %>% 
+  group_by(income_class) %>% 
+  
+  # automatically unionize polygons by the grouped data.
+  # can be a spatial operation with sf files
+  
+  summarise() %>% 
+  tm_shape() +
+  tm_polygons(col = 'income_class')
 
 # Assign income_dc to the global environment:
 
-
+income_dc <-
+  census %>% 
+  filter(
+    !is.na(income)) %>% 
+  mutate(
+    income_class = 
+      case_when(
+        income <= income %>% 
+          quantile(probs = 0.25) ~ 'low',
+        income >= income %>% 
+          quantile(probs = 0.75) ~ 'high',
+        TRUE ~ 'medium') %>% 
+      forcats::fct_relevel(
+        c('low', 'medium', 'high')) %>% 
+      
+      # set the releveled categories into integer to store this new order
+      
+      as.integer()) %>% 
+  group_by(income_class) %>% 
+  summarise()
 
 # Rasterize polygons:
 
@@ -61,11 +113,20 @@ tm_basemap(
     'Esri.WorldImagery')) +
 
 terra::rasterize(
-  x = income_dc,
+  x = income_dc %>% 
+    terra::vect(),
   y = rasters,
   field = 'income_class') %>% 
   tm_shape() +
-  tm_raster()
+  tm_raster(
+    palette = c('red', 'yellow', 'blue'),
+    alpha = 0.5,
+    
+    # change the style into category again and assign the relative name,
+    # since the features don't directly work with raster
+    
+    style = 'cat',
+    labels = c('low', 'medium', 'high'))
 
 # Now you! Use a forcats function to convert the income classes to a factor
 # ordered as "low", "medium", and "high".
@@ -75,7 +136,7 @@ terra::rasterize(
 
 # classifying continuous rasters ------------------------------------------
 
-# Reclass matrix:
+# Reclass matrix: 对连续栅格进行分类
 
 tribble(
   ~ from, ~ to, ~ becomes,
@@ -93,8 +154,12 @@ tibble(values = 0:10) %>%
       cut(
         values,
         breaks = c(0, 8, 10),
+        
+        # it is necessary to test the behavior of 'include.lowest' and 'right'
+        # every time to get familiar to it
+        
         include.lowest = TRUE,
-        right = FALSE))
+        right = FALSE)) 
 
 # Classify forested pixels:
 
@@ -103,7 +168,12 @@ forest <-
     ~ from, ~ to, ~ becomes,
          0,   80,         0,
         80,  100,         1) %>% 
-  as.matrix()
+  as.matrix() %>% 
+  terra::classify(
+    rasters$canopy, # the target raster
+    rcl = ., # matrix for classification
+    include.lowest = TRUE,
+    right = FALSE)
 
 # Mapping forest in DC:
 
@@ -122,6 +192,8 @@ tm_basemap(
 
 # reclassifying categorical rasters ---------------------------------------
 
+# 将分好类的栅格重新分类
+
 # Forest, as described by the nlcd data:
 
 forest_nlcd <- 
@@ -131,15 +203,29 @@ forest_nlcd <-
   nlcd_key %>% 
   transmute(
     from = id,
-    to = name)
-
+    to = if_else(
+      str_detect(name, 'Forest'),
+      1,
+      NA_real_)) %>% 
+  
+  # the NA value has to remain the same class, here, for number, it is 'real'
+  
+  as.matrix() %>% 
+  
+  # when the classify matrix only has 2 columns, don't need the
+  # 'include.lowest' or 'right' arguments
+  
+  # Classify raster
+  
+  terra::classify(
+    rasters$nlcd,
+    rcl = .)
+  
 # Now you! Modify the above to generate a two-column tibble where all
 # non-forested pixels are assigned the value 1 and non-forested pixels are
 # assigned to the value 0.
 
-# Now you! Reclassify rasters$nlcd to forest and non-forest:
-
-
+# Now you! Reclassify rasters$nlcd to forest and non-forest above.
 
 # Mapping forest in DC:
 
@@ -156,12 +242,19 @@ tm_basemap(
     style = 'cat',
     alpha = 0.8)
 
+  # I don't understand, what is the point for reclassifying the raster?
+
 # rasters to polygons -----------------------------------------------------
+
+  # method: need to convert rasters to SpatVectors first and then sf objects
 
 # Convert rasters to polygons:
 
 forest_sf <- 
-  forest_nlcd
+  forest_nlcd %>% 
+  terra::as.polygons() %>% # made a SpatVector object
+  st_as_sf() %>% # made an sf object
+  st_make_valid() # make the invalid polygons fixed
 
 # Mapping forest in DC:
 
@@ -184,9 +277,26 @@ tm_shape(forest_sf) +
 
 land <- 
   nlcd_key %>% 
-  transmute()
+  transmute( 
+    
+    # use 'transmute' bc other columns are useless 
+    # when creating a classifying matrix
+    
+    from = id,
+    to = 
+      if_else(
+      name == 'Open water',
+      NA_real_,
+      1)) %>% 
+  as.matrix() %>%
+  
+  # Reclassify raster:
+  
+  terra::classify(
+    rasters$nlcd,
+    rcl = .)
 
-# Mapping land in DC:
+# Mapping land in DC: (open water is shown as NA value)
 
 tm_basemap(
   c('Esri.WorldTopoMap',
@@ -199,7 +309,7 @@ tm_shape(land) +
     style = 'cat',
     alpha = 0.8)
 
-# Matrix math:
+# Matrix math: 介绍矩阵乘法的基本规则
 
 mat <-
   matrix(
@@ -209,13 +319,16 @@ mat <-
 
 # Global canopy cover mean for Washington, DC:
 
-rasters$canopy %>% 
-  terra::global(mean, na.rm = TRUE)
+{rasters$canopy * land} %>% # for pipe, curly brace is used
+  
+  # by multiplying, remove the water pixels from the canopy raster
+  
+  terra::global(mean, na.rm = TRUE) # now the mean should be higher
 
 # Now you! Remove water pixels from canopy cover and plot the resultant data
 # with tmap:
 
-rasters$canopy %>% 
+{rasters$canopy * land} %>% 
   tm_shape() +
   tm_raster(palette = 'YlGn',
             alpha = 0.6)

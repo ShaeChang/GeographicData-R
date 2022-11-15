@@ -1,12 +1,14 @@
 # Source script for bird mortality analysis
 
 library(tidyverse)
-library(sf)
 
 # A single non-spatial file:
 
 nlcd_key <- 
   read_rds('data/processed/birds_cicadas_lc.rds') %>% 
+  
+  # pull a list object from a list
+  
   pluck('nlcd_key')
 
 # load polygon data --------------------------------------------------------
