@@ -1,0 +1,22 @@
+{
+"type": "FeatureCollection",
+"name": "campsites",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "campsite": "lost van" }, "geometry": { "type": "Point", "coordinates": [ -82.908914, 35.308073 ] } },
+{ "type": "Feature", "properties": { "campsite": "gifford's garden" }, "geometry": { "type": "Point", "coordinates": [ -82.772363, 35.35483 ] } },
+{ "type": "Feature", "properties": { "campsite": "big dan" }, "geometry": { "type": "Point", "coordinates": [ -82.756007, 35.40524 ] } },
+{ "type": "Feature", "properties": { "campsite": "broke down at China palace" }, "geometry": { "type": "Point", "coordinates": [ -82.704358, 35.27589 ] } },
+{ "type": "Feature", "properties": { "campsite": "gabriel's horn" }, "geometry": { "type": "Point", "coordinates": [ -82.735674, 35.31043 ] } },
+{ "type": "Feature", "properties": { "campsite": "blueberry hill" }, "geometry": { "type": "Point", "coordinates": [ -82.87452, 35.32792 ] } },
+{ "type": "Feature", "properties": { "campsite": "pears in my panniers - 30" }, "geometry": { "type": "Point", "coordinates": [ -82.75694, 35.42673 ] } },
+{ "type": "Feature", "properties": { "campsite": "through the looking glass" }, "geometry": { "type": "Point", "coordinates": [ -82.79449, 35.3052 ] } },
+{ "type": "Feature", "properties": { "campsite": "roe farm" }, "geometry": { "type": "Point", "coordinates": [ -82.78682, 35.283582 ] } },
+{ "type": "Feature", "properties": { "campsite": "buskers holler" }, "geometry": { "type": "Point", "coordinates": [ -82.65982, 35.46341 ] } },
+{ "type": "Feature", "properties": { "campsite": "good grades at gunpoint" }, "geometry": { "type": "Point", "coordinates": [ -82.60948, 35.49965 ] } },
+{ "type": "Feature", "properties": { "campsite": "nary a hellgrammite" }, "geometry": { "type": "Point", "coordinates": [ -82.60374, 35.38861 ] } },
+{ "type": "Feature", "properties": { "campsite": "hot dogs 'n sushi" }, "geometry": { "type": "Point", "coordinates": [ -82.73244, 35.23808 ] } },
+{ "type": "Feature", "properties": { "campsite": "marshmallow gap" }, "geometry": { "type": "Point", "coordinates": [ -82.86303, 35.36259 ] } },
+{ "type": "Feature", "properties": { "campsite": "morels and cigarettes" }, "geometry": { "type": "Point", "coordinates": [ -82.82014, 35.36085 ] } }
+]
+}

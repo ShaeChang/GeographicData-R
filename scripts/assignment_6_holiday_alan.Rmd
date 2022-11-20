@@ -1,0 +1,642 @@
+---
+title: "Assignment 6: A mountain holiday for Alan"
+author: "Your name here"
+date: "today's date here"
+output: html_document
+---
+
+<!-- Please knit this right away! The additional information for (html and css)
+are provided to help you build on your current R Markdown toolbox. You will not
+be responsible for learning these additional tools at this point. -->
+
+<!-- The head tag, <head>, is a container for metadata in an html document. 
+We can use it to define styles and do lots of other cool things things. -->
+<head>
+<!-- The link tag, <link>, creates a relationship between this file and
+an external source. Here, I'm linking font-awesome so I can include a 
+couple of icons that I like (user-secret and user-circle) -->
+<link 
+rel="stylesheet" 
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<!-- Here I'm linking to a javascript file that will give us access to font awesome -->
+<script src="https://kit.fontawesome.com/03064bdd6c.js" crossorigin="anonymous"></script>
+</head>
+<!-- Note in the above that some html tags, like <head> need to be closed 
+with </head>. Others, like <link> don't need a closing tag. -->
+
+```{css, echo = FALSE}
+/* We can use the body tag to change the default text size of the whole document. */
+
+body {
+font-size: 18px
+}
+
+/* We can increase the space between our list items */
+
+ul, li {
+padding-top: 0.25em;
+}
+
+pre {
+margin-top: 2em;
+margin-bottom: 2em;
+}
+
+/* I can add custom classes with a period symbol. */
+
+.score {
+font-weight: bold;
+color: red;
+background-color: #ffff80;
+}
+
+/* I create an custom class for user secrets. Have a look at the area surrounding my spy icons below to see what this does. Also, do you notice any similarity to your ggPlot theme elements? */
+
+.mysecret {
+border: 1px solid #999999;
+border-style: solid; 
+padding: 20px; 
+border-radius: 25px;
+margin-top: 15px;
+margin-bottom: 15px;
+}
+
+/* Here, I add a custom class for area surrounding the graded portions of this assignment.*/
+
+.now_you {
+border-left: 8px solid #292093;
+background-color: #e6ffff;
+padding: 16px;
+margin-top: 15px;
+margin-bottom: 15px;
+}
+
+/* Here I will add some custom css on my font awesome icons*/
+
+.fas {
+font-size:36px
+}
+
+.subscore {
+font-size: 14px;
+color: red;
+}
+
+/* I can modify a current class like the below. To see what this does,
+have a look at where I am using block quotes in the document.*/
+
+blockquote {
+font-size: 18px;
+border-left: 8px solid #292093;
+background-color: #e6ffff;
+padding-left: 16px;
+padding-right: 16px;
+margin-top: 15px;
+margin-bottom: 15px;
+}
+
+/* Accordion style */
+.accordion {
+background-color: #e6f0ff;
+color: #000000;
+cursor: pointer;
+padding: 18px;
+width: 100%;
+border-style: solid;
+border-width: 2px;
+border-color: #ffffff;
+text-align: left;
+outline: none;
+font-size: 15px;
+transition: 0.4s;
+}
+
+.active, .accordion:hover {
+background-color: #80b3ff; 
+color: #ffffff;
+font-weight: bold;
+}
+
+.panel {
+padding: 0 18px;
+display: none;
+background-color: #eeffff;
+overflow: hidden;
+}
+```
+
+<!-- Here is the setup for knitr. I had to include tidyverse so I could
+include a tidyverse example with my Important warning statement below-->
+
+```{r knitr_setup, include = FALSE}
+options(knitr.table.format = "html")
+
+knitr::opts_chunk$set(error = TRUE)
+
+library(tidyverse)
+```
+
+<hr>
+
+## Overview
+
+<div class = "row">
+
+<figure 
+style = 
+"float: right; 
+padding-left: 1em; 
+padding-bottom: 1em; 
+padding-right: 1em; 
+width: 60%; 
+height: auto;">
+<img  
+src = "https://www.nps.gov/articles/000/images/black-bear-Glacier-Bay-NPS-resized.jpg?maxwidth=1200&autorotate=false&quality=78&format=webp"
+alt="Bear and dandelions">
+</img>
+<figcaption style = "font-size: 0.75em;">*A frighteningly "goofy" American Black Bear munching dandelions*</figcaption>
+</figure>
+
+<div style = "padding-left: 1em;">
+
+Being a student takes a lot of energy and patience --
+especially when your teacher is someone as annoying as me. At the end of every
+semester Alan McQuinn likes to take a short mountain holiday to regain his 
+strength. This semester, after dealing with me for more than four months, Alan
+really needs it. Right after the semester ends, Alan is going to get the rest
+and relaxation he deserves in Pisgah National Forest -- a stunningly beautiful
+spot in the Blue Ridge Mountains near Asheville, North Carolina. Let's send him
+on an awesome, rejuvenating, Brian-free, vacation! 
+
+In this exercise, you'll help Alan find the perfect spots to stargaze, stay 
+warm, search for waterfalls, get some quiet time, and, most importantly, 
+avoid goofy bears!
+
+</div>
+
+</div>
+
+<!-- A div is a container for html. I assign it to the class "my secret that
+we created above -->
+<div class = "mysecret">
+<!-- The i tag is commonly used to create italic text, but it can also be 
+used to create icons -->
+<i class="fas fa-user-secret"></i> When I create an R Markdown file to 
+communicate a coding process, I usually work in a .R script file and 
+copy-and-paste the code into the R Markdown document at the end.
+</div>
+
+<hr>
+
+<span style = "color: red; font-size: 36px">
+<i class="fas fa-exclamation-triangle"></i> **Important**</span> 
+
+To receive full credit for a given question, please ensure that the result you
+provide **only** answers the given question. For example, in the table below, 
+if you were asked to determine the value in column `b` where column `a` is equal
+to "hello" you would provide the following code:
+
+```{r example}
+tibble(
+  a = c('hello', 'world'),
+  b = 1:2) %>% 
+  filter(a == 'hello') %>% 
+  pull(b)
+```
+
+<hr>
+
+## Grading
+
+The points allotted for each question are provided in highlighted red bold text
+(e.g., <span class = "score">[1.0]</span>) within the question itself. When
+applicable, total points for a question may represent the sum of individually
+graded components, which are provided in red text 
+(e.g., <span class = "subscore">[1.0]</span>).
+
+**Points may be deducted from each question's total:** 
+
+* Use only functions other than those listed in "Functions that you may use in 
+this assignment" [50%]
+* Do not include any assignments other than those specified in the question
+[50%]
+* Unless specified otherwise, each question must be answered in a single piped 
+statement [50%]
+* Include a comment at the start of each code block [25%]
+* Include a comment for each line of code that modifies a dataset [10% per 
+violation]
+* Ensure that all code is properly indented [10% per violation]
+* Ensure that your code follows modern coding conventions (see *Best practices
+in modern R coding*) [10% per violation]
+
+*Note: The maximum deduction is the total points value for a given question*
+
+You must ensure that your R Markdown document **runs out-of-the-box** -- in 
+other words, the document will knit without error. Some tips for doing so:
+
+* Do not maintain your project folder in a location that is backed up by an 
+online directory (e.g., Dropbox, iCloud)
+* Ensure that all file paths are equivalent to those in this document (e.g., in
+`source()` or `read_csv()`)
+* Do not use `setwd()` in your code (***Never** use `setwd()`!*)
+* If one of your code chunks contains an error, include `eval = FALSE` in the
+options for that chunk
+* Prior to submission, clear all objects from your global environment prior to
+knitting your R Markdown document
+<hr>
+
+
+<div>
+<button class="accordion">Functions that you may use in this assignment</button>
+<div class="panel">
+
+In this assignment, you may use **only** the following R functions (*Note: If
+you are unclear on what a given function does, use `?` to view the help file!*):
+
+* base:: ::
+* base::<-
+* base::=
+* base::<
+* base::>
+* base::<=
+* base::>=
+* base::!
+* base::+
+* base::-
+* base::*
+* base::/
+* base::$
+* base::!
+* base::~
+* base::(
+* base::)
+* base::{
+* base::}
+* base::as.matrix
+* base::c
+* base::is.na
+* base::library
+* base::names
+* base::rm
+* base::source
+* dplyr::if_else
+* dplyr::filter
+* dplyr::mutate
+* dplyr::pull
+* dplyr::slice
+* dplyr::transmute
+* grDevices::gray.colors
+* grDevices::terrain.colors
+* magrittr::%>%
+* purrr::keep
+* purrr::map
+* sf::st_as_sf
+* sf::st_coordinates
+* sf::st_crs
+* sf::st_set_crs
+* spatstat::as.owin
+* spatstat::ppp
+* stats::density
+* stars::st_as_stars
+* stringr::str_detect
+* terra::as.points
+* terra::classify
+* terra::crop
+* terra::distance
+* terra::ext
+* terra::extract
+* terra::mask
+* terra::rast
+* terra::resample
+* terra::shade
+* terra::terrain
+* terra::vect
+* tibble::tibble
+* tibble::tribble
+* tmap ... any tmap function you would like!
+
+
+
+*Note: The packages dplyr, ggplot2, magrittr, readr, rlang, and tibble are all
+part of the tidyverse and are loaded with `library(tidyverse)`.*
+
+</div>
+</div>
+
+<hr>
+
+## Getting started
+
+Open R Studio. Please ensure that the Global Options for R Markdown are set to
+"Show output preview in Viewer Pane". This will allow you to view the knitted 
+document (i.e., the html version of this file) right next to your code.
+
+As always, please ensure that you are starting with a clean session. Please do
+the following before continuing:
+
+* If there are any script files open in your source pane. Close them. If any of
+the file titles are blue, save them prior to closing.
+
+* In the *Environment* tab of your **workspace pane**, ensure that your **global
+environment** is empty. If it is not, click the *broom* to remove all objects.
+
+* In the *History* tab of your **workspace pane**, ensure that your history is
+empty. If it is not, click the *broom* to remove your history.
+
+<div class = "now_you">
+<i class="fas fa-user-circle"></i> 
+
+<hr>
+
+1\. <span class = "score">[0.5]</span> Save and knit this document:
+
+* Replace my name in the YAML header with yours <span class = "subscore">
+[0.1]</span>
+* Add the current date in the YAML header <span class = "subscore">[0.1]</span>
+* Save the *.rmd* file in the **output** folder of your project as (*but replace
+my name with yours*): `assignment_6_Evans_Brian.rmd` <span class = "subscore">
+[0.3]</span>
+</div>
+<hr>
+
+## The setup
+
+**All** of my scripts start with a setup section where I load libraries, set
+session options, conduct initial data loading, and early processing steps.
+
+<div class = "now_you">
+<i class="fas fa-user-circle"></i> 
+<hr>
+2\. <span class = "score">[0.5]</span>  Setup your session:
+
+* <span class = "subscore">[0.15]</span> Load the `spatstat`, `sf`, `tmap`, and
+`tidyverse` libraries.
+
+```{r question_2a, results = 'hide', message = FALSE, warning = FALSE}
+
+# Paste your code in here!
+
+```
+
+
+* <span class = "subscore">[0.15]</span> Set the tmap mode to "view" for the
+entire document:
+
+```{r question_2b, results = 'hide', message = FALSE, warning = FALSE}
+
+# Paste your code in here!
+
+```
+
+* <span class = "subscore">[0.2]</span> Load the data using the source script
+`source_script_holiday_Alan.R`:
+
+```{r question_2c, results = 'hide', message = FALSE, warning = FALSE}
+
+# Paste your code in here!
+
+```
+
+
+3\. <span class = "score">[0.5]</span> Using iteration, subset each raster file
+in `rasters_start` to the extent below <span class = "subscore">[0.3]</span> and
+assign the results to your global environment as a list object with the name
+"rasters_reduced" <span class = "subscore">[0.1]</span>:
+
+| Coordinate        |   Value |
+|:-----------------:| -------:|
+| Minimum longitude | 1172400 |
+| Maximum longitude | 1211000 |
+| Minimum latitude  | 1433000 |
+| Maximum latitude  | 1472000 |
+
+
+```{r question_3a, results = 'hide', message = FALSE}
+
+# Paste your code in here!
+
+```
+
+* <span class = "subscore">[0.1]</span> Remove the original raster files from 
+the global environment:
+
+```{r question_3b, results = 'hide', message = FALSE}
+
+# Paste your code in here!
+
+```
+
+4\. <span class = "score">[1.0]</span> Processing climate variables:
+
+* <span class = "subscore">[0.25]</span> Using iteration, set the resolution of
+the `rasters_reduced$precip` and `rasters_reduced$tmin` rasters to the 
+resolution of rasters_reduced$canopy;
+* <span class = "subscore">[0.25]</span> Convert the modified climate rasters to
+a raster stack;
+* <span class = "subscore">[0.25]</span> Assign the raster stack to the global
+environment with the name "climate";
+
+```{r 4_a-c, results = FALSE}
+
+# Paste your code in here!
+
+```
+
+* <span class = "subscore">[0.25]</span> Briefly describe why the climate raster
+stack should not be used analytically:
+
+```{r 4d}
+
+# Please supply your answer as a comment here
+
+```
+
+</div>
+<hr>
+
+## Helping out ol' Alan
+
+With our processing complete, we're now ready to get to the fun part --
+extracting meaningful data!
+
+*Aside: I know that at least a few of you (Xavier? Rui? Anyone?) are saying to
+yourself, "but Brian, the processing **is** the fun part". If so, I get it, but
+we've at least got to pretend otherwise ...*
+
+<div class = "now_you">
+<i class="fas fa-user-circle"></i> 
+<hr>
+5\. <span class = "score">[1.0]</span> Alan sure is excited about his trip! Make
+him a nice map of the topography of Western North Carolina. Use the 
+`rasters_reduced$dem` to:
+
+* <span class = "subscore">[0.25]</span> Calculate the slope of each pixel in 
+radians and assign to your global environment with the name "slope":
+
+```{r 5_a, results = FALSE}
+
+# Paste your code in here!
+
+```
+
+* <span class = "subscore">[0.25]</span> Calculate the aspect of each pixel in
+radians and assign to your global environment with the name "aspect":
+
+```{r 5_b, results = FALSE}
+
+# Paste your code in here!
+
+```
+
+* <span class = "subscore">[0.25]</span> Generate a hillshade raster and assign
+to your global environment with the name "hillshade":
+
+```{r 5_c, results = FALSE}
+
+# Paste your code in here!
+
+```
+
+* <span class = "subscore">[0.25]</span> Make a map of the topography with a 
+hillshade to show vertical relief:
+
+```{r 5_d, results = FALSE}
+
+# Paste your code in here!
+
+```
+
+6\. <span class = "score">[1.0]</span> Nobody wants Alan to be chilly. Nobody.
+We'd better help him figure out where he'll need to wear his monogrammed
+Comfy&reg; fleece poncho during his trip:
+
+* <span class = "subscore">[0.75]</span> Using average December temperatures of 
+2.5 &deg;C as a cutoff, classify Alan's campsites (`camp_points`) as "Comfy" 
+(temperatures less than 2.5 &deg;C) or "Flannel" (temperatures greater than or 
+equal to 2.5 &deg;C);
+* <span class = "subscore">[0.25]</span> Generate a tmap of Alan's potential
+`campsites` where the points are colored blue for "Comfy" sites and red for
+"Flannel" sites.
+
+
+```{r 6, results = FALSE}
+
+# Paste your code in here!
+
+```
+
+7\. <span class = "score">[1.0]</span> On long car rides, Alan likes to 
+entertain his friends by singing "Don't Go Chasing Waterfalls sha-na-na-na" 
+over-and-over again (punctuated only by shouting "second verse, same
+as the first!"). *Waterfalls* by TLC might be Alan’s favorite song, but these are not
+words that he lives by — he loves chasing waterfalls. Transylvania County, which
+is one of four counties that share the Pisgah National Forest, is known as the
+"Land of the Waterfalls" (it has 250 large waterfalls and many more small ones).
+Let's help him find some:
+
+* <span class = "subscore">[0.2]</span> Calculate the slope of
+`rasters_reduced$dem` in degrees;
+* <span class = "subscore">[0.2]</span> Mask the slope to raster cells that 
+overlay `wnc_streams`;
+* <span class = "subscore">[0.2]</span> Convert the raster cells to an sf point 
+point file;
+* <span class = "subscore">[0.2]</span> Using slopes that are greater than or
+equal to 20 degrees as your criteria for a potential waterfall, subset the
+resultant object to points that fit this criteria;
+* <span class = "subscore">[0.2]</span> Generate a nice (but busy!) map of
+waterfall points for Alan.
+
+```{r 7_b-c, message = FALSE, warning = FALSE}
+
+# Paste your code in here!
+
+```
+
+8\. <span class = "score">[1.5]</span> Sometimes ol' Alan likes to sleep out
+under the stars to search for UFOs and contemplate the universe. Unfortunately,
+the air in the mountains can be pretty polluted due to a coal-fired power plant
+in the valley and atmospheric inversions (phenomena that trap air at low
+altitudes). Let’s figure out which campsite will provide Alan with the best
+chance to spot a UFO using the following criteria:
+
+* <span class = "subscore">[0.75]</span> The campsite is 5,000 feet or more above
+sea level;
+* <span class = "subscore">[0.75]</span> The campsite provides a clear view of 
+the night sky (canopy cover <= 10%).
+
+*Note:*
+
+* *You may use up to two assignments in answering this question ... but **0.25 
+points extra credit** if you don't!*
+* *Please return the answer as a single value that represents the name or names
+of the campsite(s) (i.e., not a data frame).*
+
+
+```{r 8_a-b, message = FALSE, warning = FALSE}
+
+# Paste your code in here!
+
+```
+
+9\. <span class = "score">[1.0]</span> Alan's never been scared of anything -- 
+except for black bear (*Ursus americanus*). "There's just something goofy about
+them ... I  don't trust goofy" Alan grunted while swirling his scotch in a way
+that's *classic Alan*. Help your fellow student steer clear of black bear by
+generating a density map of black bear in the area.
+
+*Hint: Use the `bears` and `pisgah_region` shapefiles in answering this question.*
+
+```{r 9, message = FALSE, warning = FALSE}
+
+# Paste your code in here!
+
+```
+
+<br>
+10\. <span class = "score">[2.0]</span>. Alan's spent weeks listening intently
+to Brian prattling on in this class. "How could anyone make so many verbal 
+typos?" he asks himself with a long draw from his trademark Gandolf pipe. With
+the course coming to a close, he's looking forward to some real peace and quiet.
+Help Alan get some respite from the din by generating a map that displays the 
+distance from the nearest major road (as a continuous surface).
+
+*Hint: Depending on your choice of target raster, this may take a **long time** 
+to run. As such, I strongly suggest using `rasters_reduced$precip` or 
+`rasters_reduced$tmin` as your target raster!*
+
+
+```{r question_10, message = FALSE, warning = FALSE}
+
+# Paste your code in here!
+
+```
+</div>
+
+**Extra credit** <span class = "score">[0.25]</span>:  Using data from this 
+assignment, make a super impressive static map of the variable or variables of 
+your choosing!
+
+```{r extra_credit, message = FALSE, warning = FALSE}
+
+# Paste your code in here!
+
+```
+
+<hr>
+
+<script>
+var acc = document.getElementsByClassName("accordion");
+var i;
+
+for (i = 0; i < acc.length; i++) {
+  acc[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var panel = this.nextElementSibling;
+    if (panel.style.display === "block") {
+      panel.style.display = "none";
+    } else {
+      panel.style.display = "block";
+    }
+  });
+}
+</script>
