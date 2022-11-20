@@ -1,7 +1,7 @@
 ---
 title: "Assignment 6: A mountain holiday for Alan"
-author: "Your name here"
-date: "today's date here"
+author: "Xiyu Zhang"
+date: "2022-11-19"
 output: html_document
 ---
 
@@ -374,7 +374,12 @@ session options, conduct initial data loading, and early processing steps.
 
 ```{r question_2a, results = 'hide', message = FALSE, warning = FALSE}
 
-# Paste your code in here!
+# Load libraries
+
+library(spatstat)
+library(sf)
+library(tmap)
+library(tidyverse)
 
 ```
 
@@ -384,7 +389,9 @@ entire document:
 
 ```{r question_2b, results = 'hide', message = FALSE, warning = FALSE}
 
-# Paste your code in here!
+# Set the tmap mode to 'view'
+
+tmap_mode('view')
 
 ```
 
@@ -393,7 +400,9 @@ entire document:
 
 ```{r question_2c, results = 'hide', message = FALSE, warning = FALSE}
 
-# Paste your code in here!
+# Load the data using the source script
+
+source('scripts/source_script_holiday_Alan.R')
 
 ```
 
@@ -413,7 +422,13 @@ assign the results to your global environment as a list object with the name
 
 ```{r question_3a, results = 'hide', message = FALSE}
 
-# Paste your code in here!
+# Subset raster files to specific extent by a loop
+
+rasters_reduced <-
+  rasters_start %>%
+  map(
+    ~ terra::crop(.x,
+                  terra::ext(1172400, 1211000, 1433000, 1472000)))
 
 ```
 
@@ -422,7 +437,9 @@ the global environment:
 
 ```{r question_3b, results = 'hide', message = FALSE}
 
-# Paste your code in here!
+# Remove the original raster files
+
+rm(rasters_start)
 
 ```
 
@@ -438,7 +455,24 @@ environment with the name "climate";
 
 ```{r 4_a-c, results = FALSE}
 
-# Paste your code in here!
+# Processing climate variables:
+
+climate <- 
+  list(rasters_reduced$precip,
+       rasters_reduced$tmin) %>% 
+  
+  # using iteration to reset the resolution of the two rasters
+  
+  map(
+    ~ terra::resample(.x,
+                      
+                      # reset the resolution as same as the canopy raster
+                      
+                      rasters_reduced$canopy)) %>% 
+  
+  # convert the modified climate rasters to a raster stack
+  
+  terra::rast()
 
 ```
 
@@ -447,7 +481,11 @@ stack should not be used analytically:
 
 ```{r 4d}
 
-# Please supply your answer as a comment here
+# Because initially the resolution of these rasters are much larger. By changing
+# their resolution to the same as rasters_reduced$canopy, we changed the 
+# resolution from a larger grain to a smaller grain, which means we are creating
+# some data don't exist initially. Thus, this raster stack should not be used 
+# analytically.
 
 ```
 
@@ -475,7 +513,13 @@ radians and assign to your global environment with the name "slope":
 
 ```{r 5_a, results = FALSE}
 
-# Paste your code in here!
+# Calculate the slope of each pixels
+
+slope <-
+  terra::terrain(
+  rasters_reduced$dem,
+  v = 'slope',
+  unit = 'radians')
 
 ```
 
@@ -484,7 +528,12 @@ radians and assign to your global environment with the name "aspect":
 
 ```{r 5_b, results = FALSE}
 
-# Paste your code in here!
+# Calculate the aspects of each pixel in radians
+
+aspect <-
+  terra::terrain(
+  rasters_reduced$dem,
+  v = 'aspect')
 
 ```
 
@@ -493,7 +542,15 @@ to your global environment with the name "hillshade":
 
 ```{r 5_c, results = FALSE}
 
-# Paste your code in here!
+# Generate a hillshade raster
+
+hillshade <-
+  hillshade <-
+  terra::shade(
+    slope,
+    aspect,
+    angle = 45,
+    direction = 135)
 
 ```
 
@@ -502,7 +559,34 @@ hillshade to show vertical relief:
 
 ```{r 5_d, results = FALSE}
 
-# Paste your code in here!
+# Make a map of the topography with a hillshade
+
+hillshade %>% 
+  tm_shape() +
+  tm_raster(
+    palette = 
+      gray.colors(
+        n = 7, 
+        
+        # set the gray color from black to white
+        
+        start = 0, 
+        end = 1), 
+    style = 'cont',
+    
+    # mess around with the transparency as 0.9
+    
+    alpha = 0.9, 
+    legend.show = FALSE) +
+  
+  # add the rasters_reduced$dem layer to show the elevation
+  
+  rasters_reduced$dem %>% 
+  tm_shape(name = 'Elevation') +
+  tm_raster(
+    title = 'Elevation (m)',
+    palette = terrain.colors(n = 10),
+    alpha = .7) 
 
 ```
 
@@ -521,8 +605,55 @@ equal to 2.5 &deg;C);
 
 ```{r 6, results = FALSE}
 
-# Paste your code in here!
+# Classify campsites as 'Comfy' or 'Flannel' using the temperature in Dec
 
+camp_points <- 
+  campsites %>% 
+  
+  # convert the sf object to a Spatvector
+  
+  terra::vect() %>% 
+  
+  # extract the temperature information from the Spatraster
+  
+  terra::extract(
+    rasters_reduced$tmin,
+    .) %>% 
+  
+  # classify the campsites by the temperature extracted
+  
+  mutate(
+    wear = if_else(
+      camp_points[2] < 2.5,
+      'Comfy',
+      'Flannel'))
+
+# Generate a tmap of these potential campsites with appropriate wearings
+
+# add a base map
+
+tm_basemap(
+  c('Esri.WorldTopoMap',
+    'OpenStreetMap',
+    'Esri.WorldImagery')) +
+
+# add potential campsites with appropriate wearings
+  
+  # join the generated classified campsites with the geometries
+  
+campsites %>% 
+  cbind(ID = 1:15) %>% 
+  inner_join(
+    camp_points) %>% 
+  
+  # generate a tmap and classify different dots with different wearings 
+  # with blue and red
+  
+  tm_shape() +
+  tm_dots(col = 'wear',
+          palette = 
+            c(Comfy = 'blue', Flannel = 'red'))
+  
 ```
 
 7\. <span class = "score">[1.0]</span> On long car rides, Alan likes to 
@@ -548,7 +679,26 @@ waterfall points for Alan.
 
 ```{r 7_b-c, message = FALSE, warning = FALSE}
 
-# Paste your code in here!
+# Find waterfalls:
+
+  # calculate the slope of rasters_reduced$dem in degrees
+
+rasters_reduced$dem %>% 
+  terra::terrain(
+    v = 'slope',
+    unit = 'degrees') %>% 
+  
+  # Mask the slope to raster cells that overlay wnc_streams
+  
+  terra::mask(wnc_streams %>% 
+                terra::vect() %>% 
+                terra::rast(resolution = c(30, 30)) %>% 
+                terra::resample(rasters_reduced$dem)) %>% 
+  
+  # convert the raster cells to an sf point file
+  
+  terra::as.points() %>% 
+  st_as_sf()
 
 ```
 
@@ -574,7 +724,10 @@ of the campsite(s) (i.e., not a data frame).*
 
 ```{r 8_a-b, message = FALSE, warning = FALSE}
 
-# Paste your code in here!
+# Find a campsite with a clear view:
+
+campsites %>% 
+  st_coordinates()
 
 ```
 
@@ -588,7 +741,35 @@ generating a density map of black bear in the area.
 
 ```{r 9, message = FALSE, warning = FALSE}
 
-# Paste your code in here!
+# Generate a density map of black bear in the area
+
+  # create an 'owin' object
+
+region_owin <-
+  spatstat.geom::as.owin(pisgah_region)
+
+  # generate a map
+
+bears_ppp <-
+  spatstat.geom::ppp(
+    x = {bears %>% st_coordinates()}[, 1],
+    y = {bears %>% st_coordinates()}[, 2], 
+    window = region_owin) %>% 
+  
+  # convert to a density
+  
+  stats::density(bw = 'nrd') %>% 
+  
+  # generating a raster
+  
+  stars::st_as_stars() %>% 
+  
+# Plot the data:
+  
+  tm_shape() %>% 
+  tm_raster(style = 'kmeans',
+            n = 10,
+            palette = 'YlGn')
 
 ```
 
