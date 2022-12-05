@@ -55,7 +55,32 @@ ui <-
       # Main panel
       
       mainPanel(
-        plotOutput('my_plot')
+        
+        # add tabs to our panel
+        
+        tabsetPanel(
+          
+          # the plot tab
+          
+          tabPanel(
+            'Plot',
+            plotOutput('my_plot')
+          ),
+          
+          # the summary table (the data is in server section)
+          
+          tabPanel(
+            'Summary',
+            dataTableOutput(
+              'summary'
+            )
+          ),
+          
+          tabPanel(
+            'Map',
+            tmapOutput('my_map')
+          )
+        )
       )
     )
   )
@@ -66,27 +91,51 @@ ui <-
 server <-
   function(input, output) {
     
+    # create two reactive objects
+    
+    trout_filtered <-
+      reactive({
+        trout %>% 
+          filter(common_name == input$spp)
+      })
+    
+    trout_summary <-
+      reactive({
+        trout_filtered() %>% 
+          group_by(
+            year = year(date)) %>% 
+          summarize(n = n())
+      })
+    
     # Plot:
     
     output$my_plot <-
       renderPlot({
-        trout %>% 
-          filter(common_name == input$spp) %>% 
-          group_by(
-            year = year(date)) %>% 
-          summarize(n = n()) %>% 
-          ggplot(
-            aes(x = year,
-                y = n)) +
-          geom_bar(stat = 'identity') +
-          labs(title = 'Trout by year') +
-          theme_bw()
+        trout_summary()
       })
     
     # Summary table:
     
+    output$summary <-
+      renderDataTable({
+        trout %>% 
+          filter(common_name == input$spp) %>% 
+          group_by(
+            year = year(date)) %>% 
+          summarize(n = n()) 
+      })
     
     # Map:
+    
+    output$my_map <-
+      renderTmap({
+        trout_filtered() %>% # it's a function
+          st_as_sf(
+            coords = c('longitude', 'latitude'),
+            crs = 4326) %>% 
+          tm_shape() +
+          tm_dots()
+      })
     
   }
 
