@@ -1,1 +1,2 @@
 load("/Users/maxzhang/GU/683GIS/data/processed/tidy_weather.rds")
+load("/Users/maxzhang/GU/683GIS/data/processed/tidy_weather.rds")

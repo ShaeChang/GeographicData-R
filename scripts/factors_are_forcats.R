@@ -85,7 +85,7 @@ bird_measures %>%
                       male = 'M',
                       unknown = 'U'))
 
-# forcats,  collapse ----------------------------------------------------
+# forcats, collapse ----------------------------------------------------
 
 # fct_collapse:
 

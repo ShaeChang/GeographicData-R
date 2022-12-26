@@ -89,7 +89,7 @@ bad_coords %>%
   rename(longitude = x, 
          latitude = y)
 
-  # a stringr interlude -----------------------------------------------------
+# a stringr interlude -----------------------------------------------------
 
 # if_else with str_detect:
 

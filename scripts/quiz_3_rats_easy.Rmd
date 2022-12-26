@@ -1,0 +1,290 @@
+---
+title: "Quiz 3: District Rats! (easy version)"
+output: html_document
+---
+
+<!-- Please knit this right away! The additional information for (html and css)
+are provided to help you build on your current R Markdown toolbox. You will not
+be responsible for learning these additional tools at this point. -->
+
+<!-- The head tag, <head>, is a container for metadata in an html document. 
+We can use it to define styles and do lots of other cool things things. -->
+<head>
+<!-- The link tag, <link>, creates a relationship between this file and
+an external source. Here, I'm linking font-awesome so I can include a 
+couple of icons that I like (user-secret and user-circle) -->
+<link 
+  rel="stylesheet" 
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<!-- Here I'm linking to a javascript file that will give us access to font awesome -->
+  <script src="https://kit.fontawesome.com/03064bdd6c.js" crossorigin="anonymous"></script>
+</head>
+<!-- Note in the above that some html tags, like <head> need to be closed 
+with </head>. Others, like <link> don't need a closing tag. -->
+
+```{css, echo = FALSE}
+/* We can use the body tag to change the default text size of the whole document. */
+  
+body {
+  font-size: 18px
+}
+
+/* We can increase the space between our list items */
+  
+ul, li {
+  padding-top: 0.25em;
+}
+
+pre {
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+
+/* I can add custom classes with a period symbol. */
+
+.score {
+  font-weight: bold;
+  color: red;
+  background-color: #ffff80;
+}
+
+/* I create an custom class for user secrets. Have a look at the area surrounding my spy icons below to see what this does. Also, do you notice any similarity to your ggPlot theme elements? */
+  
+.mysecret {
+  border: 1px solid #999999;
+  border-style: solid; 
+  padding: 20px; 
+  border-radius: 25px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+.myhint {
+ color: blue; 
+ font-size: 0.75em;
+ font-style: italic;
+}
+
+/* Here, I add a custom class for area surrounding the graded portions of this assignment.*/
+
+.now_you {
+  border-left: 8px solid #292093;
+  background-color: #e6ffff;
+  padding: 16px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+/* Here I will add some custom css on my font awesome icons*/
+  
+.fas {
+  font-size:36px
+}
+  
+.subscore {
+  font-size: 14px;
+  color: red;
+}
+
+/* I can modify a current class like the below. To see what this does,
+have a look at where I am using block quotes in the document.*/
+  
+blockquote {
+  font-size: 18px;
+  border-left: 8px solid #292093;
+  background-color: #e6ffff;
+  padding-left: 16px;
+  padding-right: 16px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+/* Accordion style */
+.accordion {
+  background-color: #e6f0ff;
+  color: #000000;
+  cursor: pointer;
+  padding: 18px;
+  width: 100%;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #ffffff;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+  transition: 0.4s;
+}
+
+.active, .accordion:hover {
+  background-color: #80b3ff; 
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.panel {
+  padding: 0 18px;
+  display: none;
+  background-color: #eeffff;
+  overflow: hidden;
+}
+```
+
+<!-- Here is the setup for knitr. I had to include tidyverse so I could
+include a tidyverse example with my Important warning statement below-->
+
+```{r knitr_setup, include = FALSE}
+options(knitr.table.format = "html")
+
+knitr::opts_chunk$set(error = TRUE)
+
+library(tidyverse)
+```
+
+<hr>
+
+## Overview
+<div class = "row" style = "padding-left: 1em">
+<a title = "Scary rat">
+  <img  src = "https://m.media-amazon.com/images/M/MV5BMmUxOWFkZmEtMmQwNi00MWE5LTg0NzAtMWNiYjhiZWIzNzY3XkEyXkFqcGdeQXVyNjk1Njg5NTA@._V1_.jpg"
+        alt="Movie poster of rat horror movie"
+        style = "float: right; 
+                 padding-left: 1em; 
+                 padding-bottom: 0.5em; 
+                 padding-right: 1em; 
+                 width: 40%; 
+                 height: auto;">
+  </img>
+</a>
+
+According to Orkin's city rankings, Washington DC ranked as the 4th "rattiest" city in the United States. Despite being somewhat adorable, the Norway rat (*Rattus norvegicus*) is an introduced species that can cause human health problems, chew through wiring in cars and homes, and contaminate food. They are also of environmental concern -- the species will eat just about anything that's smaller than them and have even driven some species to extinction (especially on islands). Based on their human and environmental impacts, the Norway rat is considered to be a major problem in the city. Moreover, it's a problem that's increasing -- the number of rat complaints have more than doubled in the past few years. It's expected that this may be in part be due to climate change, as more rats are able to survive during milder winters.
+
+This exercise will give you an opportunity to test your *categorization* skills while exploring the distribution of rats in the District of Columbia! The content for this quiz is derived from *Rasters 1: Introduction to rasters* and *Skill-building 5: Categories and classification*.
+</div>
+
+<div class = "row">
+<hr>
+
+## About the data
+
+<br>
+**quiz_3_rats_lifeline**: This is a tabular dataset that describes the density of reported rat sightings from August 7 through September 6, 2022. The original data represent service requests of "Rodent Inspection and Treatment" to the DC Department of Health. Density values were rounded to the nearest two decimal places and scaled from 0 through 1, with 1 representing the highest rodent density values.
+
+* Data source: <a href = "https://opendata.dc.gov/" target = "_blank">Open Data DC</a>;
+* Primary key: `geoid`. 
+
+**dc_census.geojson**: This is the census polygon shapefile that we've used across multiple exercises. 
+
+* Data source: US Census Bureau (`tigris` and `tidycensus` packages);
+* Primary key: `geoid`;
+* CRS: The datum of this file is WGS84 and it is in a projected UTM coordinate system (zone 18N). 
+
+</div>
+
+<hr>
+
+
+<div>
+<button class="accordion">Functions that you may use in this exercise</button>
+<div class="panel">
+
+Outside of the code that I provided, you may use **only** the following R functions (*Note: If you are unclear on what a given function does, use `?` to view the help file!*):
+
+* base::=
+* base::(
+* base::)
+* base::c
+* dplyr::case_when
+* dplyr::left_join
+* dplyr::mutate
+* dplyr::pull
+* dplyr::summarize
+* forcats::fct_relevel
+* magrittr::%>%
+* tmap::+
+* tmap::tm_shape
+* tmap::tm_polygons
+
+<span class = "myhint">**Note**: The packages dplyr, ggplot2, magrittr, readr, rlang, and tibble are all part of the tidyverse and are loaded with `library(tidyverse)`.</span>
+
+</div>
+</div>
+
+<hr>
+
+## The setup
+
+Copy the code below to a script file and run it to set up your session (*Note: This section is exempt from the "Functions that you may use ..." above*):
+
+```{r setup, eval = FALSE}
+# setup -----------------------------------------------
+
+library(sf)
+library(tmap)
+library(tidyverse)
+
+# Set tmap mode
+
+tmap_mode('view')
+
+# Read in the lifeline file:
+
+rat_density <- 
+   read_rds('data/processed/quiz_3_rats_lifeline.rds')
+
+# Read in polygon shapefile of census tracts in DC:
+
+dc_census <-
+  st_read('data/raw/shapefiles/dc_census.geojson') %>% 
+  set_names(
+    tolower(
+      names(.)))
+```
+
+<div class = "now_you">
+<i class="fas fa-user-circle" style = "font-size: 1.25em;"> </i>&nbsp; Without modifying the above or assigning an object to your global environment:
+
+* Create a new classified variable where average (mean) densities:
+  * Less than 0.1 are classified as "low"
+  * Less than than 0.4 and greater than or equal to 0.1 are classified as "medium"
+  * Less than 0.75 and greater than or equal to 0.4 are classified as "high"
+  * Greater than or equal to 0.75 are classified a "very high"
+* Generate a tmap that displays the average rat density by census tract, with density classes arranged in order from the lowest to highest rat densities
+</div>
+<hr>
+
+## Grading rubric
+
+You may earn up to 5 points for this skill assessment. 
+
+**Points earned include:**
+
+* <span class = "subscore">[2.0]</span> You successfully classified rat densities by census tract;
+* <span class = "subscore">[2.0]</span> You successfully arranged classes from lowest to highest rat densities;
+* <span class = "subscore">[1.0]</span> You were able generate a map of average rat densities by census tract using `tmap`.
+
+**Points may be deducted from the question's total if the following criteria are not met:** 
+
+* Only functions listed in "Functions that you may use in this exercise" are used <span class = "subscore">[-2.5]</span>
+* The question is answered in a single piped statement  <span class = "subscore">[-2.5]</span>
+* All code is properly indented  <span class = "subscore">[0.05/violation]</span>
+* Your code follows the coding conventions described in *Best practices in modern R coding* <span class = "subscore">[0.05/ violation]</span>
+* Your code is parsimonious <span class = "subscore">[0.05/violation]</span>
+
+*Note: The maximum deduction is the total points value available*
+
+<script>
+var acc = document.getElementsByClassName("accordion");
+var i;
+
+for (i = 0; i < acc.length; i++) {
+  acc[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var panel = this.nextElementSibling;
+    if (panel.style.display === "block") {
+      panel.style.display = "none";
+    } else {
+      panel.style.display = "block";
+    }
+  });
+}
+</script>
