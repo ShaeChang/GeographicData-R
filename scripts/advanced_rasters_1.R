@@ -224,7 +224,7 @@ list(
     rasters$dem %>% 
     terra::resample(tmax_masked), 
   
-  # need to use 'resample' to convert the revolution to the same
+  # need to use 'resample' to convert the revolution to the same as tmax_masked
   
   tmax_masked) %>% 
   terra::rast() %>% 

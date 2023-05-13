@@ -809,8 +809,9 @@ pixel in radians and assign to your global environment with the name
 
 slope &lt;-
   terra::terrain(
-    rasters_reduced$dem,
-    v = &#39;slope&#39;)</code></pre>
+  rasters_reduced$dem,
+  v = &#39;slope&#39;,
+  unit = &#39;radians&#39;)</code></pre>
 <ul>
 <li><span class="subscore">[0.25]</span> Calculate the aspect of each
 pixel in radians and assign to your global environment with the name
@@ -826,12 +827,49 @@ aspect &lt;-
 <li><span class="subscore">[0.25]</span> Generate a hillshade raster and
 assign to your global environment with the name “hillshade”:</li>
 </ul>
-<pre class="r"><code># Paste your code in here!</code></pre>
+<pre class="r"><code># Generate a hillshade raster
+
+hillshade &lt;-
+  hillshade &lt;-
+  terra::shade(
+    slope,
+    aspect,
+    angle = 45,
+    direction = 135)</code></pre>
 <ul>
 <li><span class="subscore">[0.25]</span> Make a map of the topography
 with a hillshade to show vertical relief:</li>
 </ul>
-<pre class="r"><code># Paste your code in here!</code></pre>
+<pre class="r"><code># Make a map of the topography with a hillshade
+
+hillshade %&gt;% 
+  tm_shape() +
+  tm_raster(
+    palette = 
+      gray.colors(
+        n = 7, 
+        
+        # set the gray color from black to white
+        
+        start = 0, 
+        end = 1), 
+    style = &#39;cont&#39;,
+    
+    # mess around with the transparency as 0.9
+    
+    alpha = 0.9, 
+    legend.show = FALSE) +
+  
+  # add the rasters_reduced$dem layer to show the elevation
+  
+  rasters_reduced$dem %&gt;% 
+  tm_shape(name = &#39;Elevation&#39;) +
+  tm_raster(
+    title = &#39;Elevation (m)&#39;,
+    palette = terrain.colors(n = 10),
+    alpha = .7) </code></pre>
+<pre><code>## stars object downsampled to 994 by 1005 cells. See tm_shape manual (argument raster.downsample)
+## stars object downsampled to 994 by 1005 cells. See tm_shape manual (argument raster.downsample)</code></pre>
 <p>6. <span class="score">[1.0]</span> Nobody wants Alan to be chilly.
 Nobody. We’d better help him figure out where he’ll need to wear his
 monogrammed Comfy® fleece poncho during his trip:</p>
@@ -844,7 +882,59 @@ temperatures of 2.5 °C as a cutoff, classify Alan’s campsites
 potential <code>campsites</code> where the points are colored blue for
 “Comfy” sites and red for “Flannel” sites.</li>
 </ul>
-<pre class="r"><code># Paste your code in here!</code></pre>
+<pre class="r"><code># Classify campsites as &#39;Comfy&#39; or &#39;Flannel&#39; using the temperature in Dec
+
+camp_points &lt;- 
+  campsites %&gt;% 
+  
+  # convert the sf object to a Spatvector
+  
+  terra::vect() %&gt;% 
+  
+  # extract the temperature information from the Spatraster
+  
+  terra::extract(
+    rasters_reduced$tmin,
+    .) %&gt;% 
+  
+  # classify the campsites by the temperature extracted
+  
+  mutate(
+    wear = if_else(
+      camp_points[2] &lt; 2.5,
+      &#39;Comfy&#39;,
+      &#39;Flannel&#39;))</code></pre>
+<pre><code>## Error in `mutate()`:
+## ! Problem while computing `wear = if_else(camp_points[2] &lt; 2.5, &quot;Comfy&quot;,
+##   &quot;Flannel&quot;)`.
+## Caused by error in `if_else()`:
+## ! object &#39;camp_points&#39; not found</code></pre>
+<pre class="r"><code># Generate a tmap of these potential campsites with appropriate wearings
+
+# add a base map
+
+tm_basemap(
+  c(&#39;Esri.WorldTopoMap&#39;,
+    &#39;OpenStreetMap&#39;,
+    &#39;Esri.WorldImagery&#39;)) +
+
+# add potential campsites with appropriate wearings
+  
+  # join the generated classified campsites with the geometries
+  
+campsites %&gt;% 
+  cbind(ID = 1:15) %&gt;% 
+  inner_join(
+    camp_points) %&gt;% 
+  
+  # generate a tmap and classify different dots with different wearings 
+  # with blue and red
+  
+  tm_shape() +
+  tm_dots(col = &#39;wear&#39;,
+          palette = 
+            c(Comfy = &#39;blue&#39;, Flannel = &#39;red&#39;))</code></pre>
+<pre><code>## Error in check_join(x, y): object &#39;camp_points&#39; not found</code></pre>
 <p>7. <span class="score">[1.0]</span> On long car rides, Alan likes to
 entertain his friends by singing “Don’t Go Chasing Waterfalls
 sha-na-na-na” over-and-over again (punctuated only by shouting “second
@@ -867,7 +957,31 @@ subset the resultant object to points that fit this criteria;</li>
 <li><span class="subscore">[0.2]</span> Generate a nice (but busy!) map
 of waterfall points for Alan.</li>
 </ul>
-<pre class="r"><code># Paste your code in here!</code></pre>
+<pre class="r"><code># Find waterfalls:
+
+  # calculate the slope of rasters_reduced$dem in degrees
+
+rasters_reduced$dem %&gt;% 
+  terra::terrain(
+    v = &#39;slope&#39;,
+    unit = &#39;degrees&#39;) %&gt;% 
+  
+  # Mask the slope to raster cells that overlay wnc_streams
+  
+  terra::mask(wnc_streams %&gt;% 
+                terra::vect() %&gt;% 
+                terra::rast(resolution = c(30, 30)) %&gt;% 
+                terra::resample(rasters_reduced$dem)) %&gt;% 
+  
+  # convert the raster cells to an sf point file
+  
+  terra::as.points() %&gt;% 
+  st_as_sf()</code></pre>
+<pre><code>## Simple feature collection with 0 features and 0 fields
+## Bounding box:  xmin: NA ymin: NA xmax: NA ymax: NA
+## Projected CRS: NAD83 / Conus Albers
+## [1] geometry
+## &lt;0 rows&gt; (or 0-length row.names)</code></pre>
 <p>8. <span class="score">[1.5]</span> Sometimes ol’ Alan likes to sleep
 out under the stars to search for UFOs and contemplate the universe.
 Unfortunately, the air in the mountains can be pretty polluted due to a
@@ -888,7 +1002,26 @@ but <strong>0.25 points extra credit</strong> if you don’t!</em></li>
 <li><em>Please return the answer as a single value that represents the
 name or names of the campsite(s) (i.e., not a data frame).</em></li>
 </ul>
-<pre class="r"><code># Paste your code in here!</code></pre>
+<pre class="r"><code># Find a campsite with a clear view:
+
+campsites %&gt;% 
+  st_coordinates()</code></pre>
+<pre><code>##          X       Y
+## 1  1176490 1442436
+## 2  1187957 1449317
+## 3  1188632 1455109
+## 4  1195257 1441421
+## 5  1191922 1444856
+## 6  1179256 1445062
+## 7  1188215 1457480
+## 8  1186752 1443540
+## 9  1187772 1441240
+## 10 1196298 1462764
+## 11 1200212 1467415
+## 12 1202470 1455182
+## 13 1193337 1436878
+## 14 1179747 1449048
+## 15 1183601 1449389</code></pre>
 <p>9. <span class="score">[1.0]</span> Alan’s never been scared of
 anything – except for black bear (<em>Ursus americanus</em>). “There’s
 just something goofy about them … I don’t trust goofy” Alan grunted
@@ -897,7 +1030,35 @@ your fellow student steer clear of black bear by generating a density
 map of black bear in the area.</p>
 <p><em>Hint: Use the <code>bears</code> and <code>pisgah_region</code>
 shapefiles in answering this question.</em></p>
-<pre class="r"><code># Paste your code in here!</code></pre>
+<pre class="r"><code># Generate a density map of black bear in the area
+
+  # create an &#39;owin&#39; object
+
+region_owin &lt;-
+  spatstat.geom::as.owin(pisgah_region)
+
+  # generate a map
+
+bears_ppp &lt;-
+  spatstat.geom::ppp(
+    x = {bears %&gt;% st_coordinates()}[, 1],
+    y = {bears %&gt;% st_coordinates()}[, 2], 
+    window = region_owin) %&gt;% 
+  
+  # convert to a density
+  
+  stats::density(bw = &#39;nrd&#39;) %&gt;% 
+  
+  # generating a raster
+  
+  stars::st_as_stars() %&gt;% 
+  
+# Plot the data:
+  
+  tm_shape() %&gt;% 
+  tm_raster(style = &#39;kmeans&#39;,
+            n = 10,
+            palette = &#39;YlGn&#39;)</code></pre>
 <p><br> 10. <span class="score">[2.0]</span>. Alan’s spent weeks
 listening intently to Brian prattling on in this class. “How could
 anyone make so many verbal typos?” he asks himself with a long draw from

@@ -607,26 +607,29 @@ equal to 2.5 &deg;C);
 
 # Classify campsites as 'Comfy' or 'Flannel' using the temperature in Dec
 
-camp_points <- 
+camp_points <-
   campsites %>% 
-  
-  # convert the sf object to a Spatvector
-  
-  terra::vect() %>% 
-  
-  # extract the temperature information from the Spatraster
-  
-  terra::extract(
-    rasters_reduced$tmin,
-    .) %>% 
-  
-  # classify the campsites by the temperature extracted
-  
-  mutate(
-    wear = if_else(
-      camp_points[2] < 2.5,
-      'Comfy',
-      'Flannel'))
+
+# camp_points <- 
+#   campsites %>% 
+#   
+#   # convert the sf object to a Spatvector
+#   
+#   terra::vect() %>% 
+#   
+#   # extract the temperature information from the Spatraster
+#   
+#   terra::extract(
+#     rasters_reduced$tmin,
+#     .) %>% 
+#   
+#   # classify the campsites by the temperature extracted
+#   
+#   mutate(
+#     wear = if_else(
+#       camp_points[2] < 2.5,
+#       'Comfy',
+#       'Flannel'))
 
 # Generate a tmap of these potential campsites with appropriate wearings
 
