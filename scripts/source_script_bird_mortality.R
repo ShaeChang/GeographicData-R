@@ -6,9 +6,6 @@ library(tidyverse)
 
 nlcd_key <- 
   read_rds('data/processed/birds_cicadas_lc.rds') %>% 
-  
-  # pull a list object from a list
-  
   pluck('nlcd_key')
 
 # load polygon data --------------------------------------------------------
@@ -95,11 +92,9 @@ rasters <-
     pattern = 'canopy|nlcd|imperv',
     full.names = TRUE) %>%
   purrr::map(
-    ~ terra::rast(.x) %>%
-      terra::crop(census %>%
-                    terra::vect()) %>% 
-      terra::mask(census %>% 
-                    terra::vect())) %>%
+    ~ terra::rast(.x) %>% 
+      terra::crop(census) %>% 
+      terra::mask(census)) %>%
   set_names('canopy', 'imp', 'nlcd') %>%
   terra::rast()
 
@@ -108,3 +103,4 @@ rasters <-
 rasters$canopy <-
   terra::project(rasters$canopy,
                  rasters$imp)
+

@@ -130,8 +130,7 @@ birds %>%
       str_replace(
         age,
         'Nestling|Fledgling', # means nestling or fledgling
-        'Juvenile'
-        )) %>% 
+        'Juvenile')) %>% 
   pull(age) %>% 
   unique()
 
@@ -144,8 +143,7 @@ nlcd_key %>%
       if_else(
         str_detect(name, 'Dev'), # don't have to search the full word
         'developed',
-        'undeveloped'
-      ))
+        'undeveloped'))
 
 # case_when ---------------------------------------------------------------
 

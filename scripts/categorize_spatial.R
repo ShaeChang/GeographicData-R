@@ -31,6 +31,9 @@ census %>%
       if_else(income < median(income, na.rm = TRUE),
               'low',
               'high')) %>% 
+  
+  # visualize it
+  
   tm_shape() +
   tm_polygons(col = 'income_class')
 
@@ -73,11 +76,11 @@ census %>%
         income >= income %>% 
           quantile(probs = 0.75) ~ 'high',
         TRUE ~ 'medium')) %>% 
-  group_by(income_class) %>% 
   
   # automatically unionize polygons by the grouped data.
   # can be a spatial operation with sf files
   
+  group_by(income_class) %>% 
   summarise() %>% 
   tm_shape() +
   tm_polygons(col = 'income_class')
@@ -99,7 +102,8 @@ income_dc <-
       forcats::fct_relevel(
         c('low', 'medium', 'high')) %>% 
       
-      # set the releveled categories into integer to store this new order
+      # set the releveled categories into integer to store this new order,
+      # since fct_relevel does not work well with sf object
       
       as.integer()) %>% 
   group_by(income_class) %>% 
@@ -111,8 +115,10 @@ tm_basemap(
   c('Esri.WorldTopoMap',
     'OpenStreetMap',
     'Esri.WorldImagery')) +
+  
+  # convert a polygon to a raster and generate a tmap
 
-terra::rasterize(
+  terra::rasterize(
   x = income_dc %>% 
     terra::vect(),
   y = rasters,
@@ -122,8 +128,9 @@ terra::rasterize(
     palette = c('red', 'yellow', 'blue'),
     alpha = 0.5,
     
-    # change the style into category again and assign the relative name,
-    # since the features don't directly work with raster
+    # change the style into categorical again and assign the relative name,
+    # since the features don't directly work with raster, and treated the levels
+    # as doubles if not modified
     
     style = 'cat',
     labels = c('low', 'medium', 'high'))
@@ -192,7 +199,7 @@ tm_basemap(
 
 # reclassifying categorical rasters ---------------------------------------
 
-# 将分好类的栅格重新分类
+# 对离散数据类型的rasters进行归类重组
 
 # Forest, as described by the nlcd data:
 
@@ -241,8 +248,6 @@ tm_basemap(
     palette = c(NA, '#208142'),
     style = 'cat',
     alpha = 0.8)
-
-  # I don't understand, what is the point for reclassifying the raster?
 
 # rasters to polygons -----------------------------------------------------
 

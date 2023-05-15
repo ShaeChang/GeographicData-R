@@ -1,7 +1,7 @@
 ---
 title: "Assignment 5: Environmental equity, access to natural areas"
-author: "Your name here"
-date: "today's date here"
+author: "Xiyu Zhang"
+date: "05-13-2023"
 output: html_document
 ---
 

@@ -105,8 +105,12 @@ temp <-
   st_transform(5070) %>% 
   terra::vect()
 
+# read in a raster file from the terra package
+
 imp <-
   terra::rast('data/raw/rasters/impervious_surface.tif')
+  
+# resolution here means 30 meters * 30 meters in the real world
 
 terra::plot(imp)
 
@@ -120,24 +124,38 @@ rasters <-
     # 'map' could be both used on vectors and lists
     
     ~ terra::rast(.x) %>% 
-      terra::crop(temp) %>% 
-      terra::mask(temp)) %>% 
+      terra::crop(
+        unionized_polygons$census %>% 
+          st_transform(5070) %>% 
+          terra::vect()) %>% 
+      terra::mask(
+        unionized_polygons$census %>%
+          st_transform(5070) %>%
+          terra::vect())) %>%
   set_names('canopy', 'imp', 'nlcd') %>% 
   
   # create a raster stack - with plenty of raster layers
   
   terra::rast()
 
+# Transforming projections for the plotting purpose
+
 rasters_prj <-
   rasters %>% 
-  terra::project(y = 'epsg:32618',
-                 
-                 # ? use this method to preserve the type of each layers
-                 
-                 method = 'near') 
-  
-  # epsg 32618 is the UTM Zone that appropriate for Washington DC,
-  # and also the CRS of our shapefiles
+  terra::project(
+    
+    # epsg 32618 is the UTM Zone that appropriate for Washington DC,
+    # and also the CRS of our shapefiles
+    
+    y = 'epsg:32618',
+    
+    # "nlcd" is a categorical layer meaning "land cover". the default method
+    # "bilinear" is problematic with categorical layers
+    
+    # use "near" instead, 
+    # to preserve classes of the layers, only for a plotting purpose
+    
+    method = 'near') # notice that the colors of layers remain same now
 
 rm(imp)
 
@@ -146,8 +164,8 @@ rm(temp)
 # the SpatVector ----------------------------------------------------------
 
 # Convert an sf object to a SpatVector:
-  # to use an sf object, usually convert it to a SpatVector.
-  # the latter has different format and feature names comparing to an sf object
+  # to use an sf object in **rasters**, usually convert it to a SpatVector.
+  # not "SpatRaster" but "SpatVector"!
 
 points$birds %>% 
   terra::vect() %>% 
@@ -161,7 +179,7 @@ points$birds %>%
 
 rasters$can %>% 
   
-  # subset the raster to DC area.
+  # subset the raster's extent to DC area.
   # Because rasters are memory intensive, better to crop剪裁 the raster to a 
   # smaller object as early in the process as possible
   
@@ -198,14 +216,15 @@ tm_basemap(
   # as an item from a list)
   
   tm_shape(rasters_prj$canopy) +
-  
-  # add some transparency by using 'alpha'
-  
-  tm_raster(alpha = 0.6,
-            
-            # change the color palette to better represent forests
-            
-            palette = 'Greens') +
+  tm_raster(
+    
+    # add some transparency by using 'alpha'
+    
+    alpha = 0.6,
+    
+    # change the color palette to better represent forests
+    
+    palette = 'Greens') +
   
   # Impervious surface:
   
@@ -216,15 +235,19 @@ tm_basemap(
   # Land cover:
   
   tm_shape(rasters_prj$nlcd) +
-  
-  # 'cat' means 'categorical raster'
-  
-  tm_raster(palette = 'cat',
-            style = 'cat')
+  tm_raster(
+    
+    # 'cat' means 'categorical raster'. by default, this argument treats the 
+    # input as continuous data, as such we need to change
+    
+    palette = 'cat',
+    style = 'cat')
 
 # extracting data from rasters --------------------------------------------
 
 # Global summary statistic, mean:
+
+  # use "raster" but not projected "raster_prj" for accuracy
 
 rasters$imp %>% 
   
@@ -234,7 +257,7 @@ rasters$imp %>%
   
   # the output shows that the impervious land cover is 38%
 
-# Mean impervious surface by census tract:
+# Mean impervious surface by "census tract":
 
 polygons$census %>% 
   st_transform(crs = 5070) %>% 
@@ -248,7 +271,7 @@ polygons$census %>%
     
     rasters$imp,
     
-    # the name of the raster that is extracting to 
+    # the name of the generated SpatVector that is extracting to 
     
     .,
     
@@ -270,7 +293,8 @@ polygons$census %>%
 
 polygons$census %>% 
   
-  # can use 'mutate' for an sf object, too
+  # can use 'mutate' for an sf object, but not raster, and that's why we prefer
+  # sf objects in the most of the cases
   
   mutate(
     imp = 
@@ -284,39 +308,51 @@ polygons$census %>%
         na.rm = TRUE) %>% 
       pull())
 
-# Extract impervious surface to points: (What does it mean, in practical?)
+# Extract impervious surface to points: 
+# (What does it mean, in practical? 知道每一只鸟生病时候的土地硬化程度)
 
 points$birds %>%
+  
+  # make it a field by using "mutate"
+  # in sf objects, "feature" is like rows while "field" represents columns
+  
   mutate(
-    imp = 
+    imp_30m2 = 
       points$birds %>% 
       st_transform(crs = 5070) %>% 
       terra::vect() %>% 
       
-      # at each census tract where the number of sick birds found
+      # return the impervious surface that each location a sick bird was found,
+      # since "the impervious surface" is a continuous variable
       
       terra::extract(rasters$imp, .) %>% 
       pull(imp))
-
-  # where does the 30m statistics come from? 
-  # because of the size of the pixels?
+  
+  # Now, this new field represent the impervious surface around 30 meters (bc of
+  # the resolution) of each point that a sick bird was found. 
+  # However, birds can travel more than 30 meters, so:
 
 # Now you! Add a field to points$birds that represents the proportion of
 # impervious surface within 500 m of each location:
 
 points$birds %>% 
   mutate(
-    imp = 
+    imp_500m2 = 
       points$birds %>% 
       st_transform(crs = 5070) %>% 
       
-      # generate a 500 meters' buffer around the point
+      # generate a 500 meters' buffer around the point, 
+      # by transform point values into polygons
       
       st_buffer(500) %>% 
       terra::vect() %>% 
       terra::extract(
         rasters$imp,
         .,
+        
+        # these two arguments are added bc now it's from a sf polygon,
+        # but not point
+        
         mean,
         na.rm = TRUE) %>% 
       pull(imp))
