@@ -45,15 +45,20 @@ polygons <-
       
       # fix invalid geometries:
       
-      st_make_valid())
+      st_make_valid()) # can use st_is_valid() to check whether it is valid
 
 # Dissolve inner borders from polygons:
 
 unionized_polygons <-
-  purrr::map(
-    polygons,
-    ~ .x %>% 
+  polygons %>% 
+  purrr::map(~ .x %>% 
+      
+      # first unionized
+      
       st_union() %>% 
+      
+      # then convert the type of polygon back to sf for further usage
+      
       st_sf())
 
 # Remove water from census shape:
@@ -62,7 +67,7 @@ census_no_water <-
   polygons$census %>% 
   st_difference(unionized_polygons$water)
 
-  # why? what does st_difference do exactly?
+  # why? what does st_difference do exactly? minus, minus y from x
 
 # load points -------------------------------------------------------------
 
@@ -89,7 +94,7 @@ points <-
   map(
     ~ .x %>% 
       
-      # transform to the same CRS as the polygons:
+      # transform to the same CRS as the polygons to filter
       
       st_transform(crs = st_crs(polygons$census)) %>% 
       
@@ -150,9 +155,11 @@ tm_basemap(
 
 counts_by_census <-
   points %>% 
+  
+  # why use purrr::map here
+  
   map(
-    ~ .x %>% 
-      st_join(census_no_water, .) %>% 
+    ~ st_join(census_no_water, .x) %>% 
       
       # order matters here, why?
       
@@ -160,8 +167,8 @@ counts_by_census <-
       group_by(geoid) %>% 
       summarise(n = n()) %>% 
       left_join(census_no_water, .) %>% 
-      mutate(area = st_area(.) %>% 
-               units::set_units('km^2'),
+      mutate(area = st_area(.)
+               %>% units::set_units('km^2'),
              density = n/area))
 
 # Basemap:
@@ -207,6 +214,9 @@ tm_basemap(
 counts_by_census$cicadas %>% 
   mutate(area = 
            st_area(.) %>% 
+           
+           # set the unit to km^2
+           
            units::set_units('km^2'),
          density = n/area)
 
@@ -222,17 +232,18 @@ counts_by_census$cicadas %>%
 # unions and differences --------------------------------------------------
 
 # Union - District of Columbia
+# purpose: cut the water body off from calculating densities
 
 tm_basemap(
   c('Esri.WorldTopoMap',
     'OpenStreetMap',
     'Esri.WorldImagery')) +
   
-  polygons$census %>% 
-  st_difference(unionized_polygons$water) %>% 
+  polygons$census %>%
   
   # remove any water from the census shape file
   
+  st_difference(unionized_polygons$water) %>% 
   tm_shape() +
   tm_polygons(alpha = 0.7) +
   
@@ -254,7 +265,6 @@ tm_basemap(
   polygons$census %>% 
   tm_shape() +
   tm_polygons(alpha = 0.7)
-
 
 # centroids ---------------------------------------------------------------
 
@@ -278,11 +288,11 @@ tm_basemap(
   # Birds:
   
   counts_by_census$birds %>% 
+  
+  # center all values in one dot by 'centroid',
+  # for the convenience of comparing the two distribution in one picture
+  
   st_centroid() %>% 
-  
-  # use 'centroid' for the convenience of comparing the two distribution
-  # in one picture
-  
   tm_shape(name = 'Bird mortality by census tract') +
   tm_dots(
     title = 'Sick birds',
@@ -293,6 +303,9 @@ tm_basemap(
     size = 0.1)
 
 # buffers and intersections -----------------------------------------------
+
+# calculate distance between sick birds and the Rock Creek Park,
+# due to the suspect that the RCP is a source of cicadas.
 
 tm_basemap(
   c('Esri.WorldTopoMap',
@@ -324,11 +337,17 @@ tm_basemap(
 
 # distance calculations ---------------------------------------------------
 
-# Distance to park:
+# Is the park really the source of cicadas?
+
+# every cicadas' distance to park:
 
 points$cicadas %>% 
-  st_distance(unionized_polygons$rock_creek,
-              by_element = TRUE)
+  st_distance(unionized_polygons$rock_creek) %>% 
+  
+  # it used to be by_element = TRUE, but does not work
+  # to reach the same goal to generate a vector, I use the following:
+  
+  as.vector()
 
 # Add distance to Rock Creek Park to points$cicadas as a vector called
 # distance_to_park:
@@ -338,8 +357,8 @@ points$cicadas %>%
     distance_to_park = 
       st_distance(
         .,
-        unionized_polygons$rock_creek,
-        by_element = TRUE))
+        unionized_polygons$rock_creek) %>% 
+      as.vector())
 
 # Now you! Modify the tmap below such that cicada points are colored by
 # distance-from-park:
@@ -358,8 +377,11 @@ tm_basemap(
     distance_to_park = 
       st_distance(
         .,
-        unionized_polygons$rock_creek,
-        by_element = TRUE)) %>% 
+        unionized_polygons$rock_creek) %>% 
+      as.vector()) %>% 
   tm_shape() +
   tm_dots(col = 'distance_to_park',
+          
+          # use 'kmeans' clusters
+          
           style = 'kmeans')
