@@ -422,6 +422,7 @@ tm_basemap(
     # name the layer
     
     name = 'National Park Service parks') +
+  
   tm_polygons(
     
     # name the layer's legend
